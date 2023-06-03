@@ -29,7 +29,10 @@ func InitLogger(level string) error {
 		EncoderConfig:    zap.NewProductionEncoderConfig(),
 	}
 
-	cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
+	// 调用控制台输出，默认的是json输出
+	// cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
+	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
 	var err error
 	log, err = cfg.Build(zap.AddCallerSkip(1))
