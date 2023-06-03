@@ -44,25 +44,6 @@ func InitLogger(logLevel string) {
 	zapLoggerEncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	syncWriter := zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout))
 
-	// 同步输出到文件
-	//syncWriter = zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&lumberjack.Logger{
-	//	Filename:  "logs/app/app.log", // ⽇志⽂件路径
-	//	MaxSize:   100,                // 单位为MB,默认为512MB
-	//	MaxAge:    5,                  // 文件最多保存多少天
-	//	LocalTime: true,               // 采用本地时间
-	//	Compress:  false,              // 是否压缩日志
-	//}))
-	// 异步输出到文件
-	//syncWriter = &zapcore.BufferedWriteSyncer{
-	//	WS: zapcore.AddSync(&lumberjack.Logger{
-	//		Filename:  "logs/app/app.log", // ⽇志⽂件路径
-	//		MaxSize:   100,                // 单位为MB,默认为512MB
-	//		MaxAge:    5,                  // 文件最多保存多少天
-	//		LocalTime: true,               // 采用本地时间
-	//		Compress:  false,              // 是否压缩日志
-	//	}),
-	//	Size: 4096,
-	//}
 	zapCore := zapcore.NewCore(zapcore.NewConsoleEncoder(zapLoggerEncoderConfig), syncWriter, parseLogLevel(logLevel))
 	log = zap.New(zapCore, zap.AddCaller(), zap.AddCallerSkip(1))
 }
