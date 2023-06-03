@@ -30,7 +30,7 @@ func main() {
 	gptPre := viper.GetString("CHATGPT_API_PREFIX")
 
 	// 打印结果
-	logger.Info("server", zap.String("server", server))
-	logger.Info("proxys", zap.Strings("proxys", proxies))
-	logger.Info("CHATGPT_API_PREFIX", zap.String("CHATGPT_API_PREFIX", gptPre))
+	logger.Debug("server", zap.String("server", server))
+	logger.Debug("proxys", zap.Strings("proxys", proxies))
+	logger.Debug("CHATGPT_API_PREFIX", zap.String("CHATGPT_API_PREFIX", gptPre))
 }
