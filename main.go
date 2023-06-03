@@ -9,10 +9,7 @@ import (
 
 func main() {
 	// 初始化logger
-	err := logger.InitLogger("info")
-	if err != nil {
-		panic(err)
-	}
+	logger.InitLogger("debug")
 
 	// 绑定命令行参数
 	pflag.StringP("server", "s", "127.0.0.1:8080", "server address")
@@ -21,7 +18,7 @@ func main() {
 	pflag.Parse()
 
 	// 初始化Viperr
-	err = viper.BindPFlags(pflag.CommandLine)
+	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
 		logger.Error("viper.BindPFlags failed", zap.Error(err))
 		return

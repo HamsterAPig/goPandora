@@ -1,48 +1,70 @@
 package logger
 
 import (
-	"fmt"
-	"os"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"os"
+	"time"
 )
 
 var (
 	log *zap.Logger
 )
 
-// InitLogger initializes the logger with the specified log level.
-// Valid log levels are "debug", "info", "warn", "error", and "fatal".
-// The log level is case-insensitive.
-func InitLogger(level string) error {
-	logLevel := parseLogLevel(level)
-	if logLevel == zapcore.Level(-1) {
-		return fmt.Errorf("invalid log level: %s", level)
+// InitLogger 初始化日志记录器
+func InitLogger(logLevel string) {
+	// 自定义时间格式
+	customTimeEncoder := func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
+	}
+	//自定义日志级别显示
+	customLevelEncoder := func(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(level.CapitalString())
+	}
+	// 自定义代码路径、行号输出
+	customCallerEncoder := func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString("[" + caller.TrimmedPath() + "]")
 	}
 
-	cfg := zap.Config{
-		Encoding:         "json",
-		Level:            zap.NewAtomicLevelAt(logLevel),
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-		EncoderConfig:    zap.NewProductionEncoderConfig(),
+	zapLoggerEncoderConfig := zapcore.EncoderConfig{
+		TimeKey:          "time",
+		LevelKey:         "level",
+		NameKey:          "logger",
+		CallerKey:        "caller",
+		MessageKey:       "message",
+		StacktraceKey:    "stacktrace",
+		EncodeCaller:     customCallerEncoder,
+		EncodeTime:       customTimeEncoder,
+		EncodeLevel:      customLevelEncoder,
+		EncodeDuration:   zapcore.SecondsDurationEncoder,
+		LineEnding:       "\n",
+		ConsoleSeparator: " ",
 	}
 
-	// 调用控制台输出，默认的是json输出
-	// cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
-	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	zapLoggerEncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	syncWriter := zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout))
 
-	var err error
-	log, err = cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		return err
-	}
-
-	zap.RedirectStdLog(log)
-
-	return nil
+	// 同步输出到文件
+	//syncWriter = zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&lumberjack.Logger{
+	//	Filename:  "logs/app/app.log", // ⽇志⽂件路径
+	//	MaxSize:   100,                // 单位为MB,默认为512MB
+	//	MaxAge:    5,                  // 文件最多保存多少天
+	//	LocalTime: true,               // 采用本地时间
+	//	Compress:  false,              // 是否压缩日志
+	//}))
+	// 异步输出到文件
+	//syncWriter = &zapcore.BufferedWriteSyncer{
+	//	WS: zapcore.AddSync(&lumberjack.Logger{
+	//		Filename:  "logs/app/app.log", // ⽇志⽂件路径
+	//		MaxSize:   100,                // 单位为MB,默认为512MB
+	//		MaxAge:    5,                  // 文件最多保存多少天
+	//		LocalTime: true,               // 采用本地时间
+	//		Compress:  false,              // 是否压缩日志
+	//	}),
+	//	Size: 4096,
+	//}
+	zapCore := zapcore.NewCore(zapcore.NewConsoleEncoder(zapLoggerEncoderConfig), syncWriter, parseLogLevel(logLevel))
+	log = zap.New(zapCore, zap.AddCaller(), zap.AddCallerSkip(1))
 }
 
 // parseLogLevel converts a log level string to the corresponding zapcore.Level.
