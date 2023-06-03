@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	logger "goPandora/internal/log"
+	"goPandora/web"
 )
 
 func main() {
@@ -33,4 +34,6 @@ func main() {
 	logger.Debug("server", zap.String("server", server))
 	logger.Debug("proxys", zap.Strings("proxys", proxies))
 	logger.Debug("CHATGPT_API_PREFIX", zap.String("CHATGPT_API_PREFIX", gptPre))
+
+	web.ServerStart(server, gptPre)
 }
