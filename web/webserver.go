@@ -56,41 +56,7 @@ func ServerStart(address string, param *PandoraParam) {
 			"next":       next,
 		})
 	})
-	router.POST("/auth/login_token", func(context *gin.Context) {
-		next := context.PostForm("next")
-		if "" == next {
-			next = "/"
-		}
-		accessToken := context.PostForm("access_token")
-		if "" != accessToken {
-			payload, err := CheckAccessToken(accessToken)
-			if nil != err {
-				data := gin.H{"code": 1, "msg": err.Error()}
-				context.JSON(http.StatusInternalServerError, data)
-			}
-			exp, _ := payload["exp"].(float64)
-			expires := time.Unix(int64(exp), 0)
-			data := gin.H{"code": 0, "url": next}
-			//context.SetSameSite(http.SameSiteLaxMode)
-			//context.SetCookie("access-token", accessToken, int(expires.Sub(time.Now()).Seconds()), "/", "", false, true)
-			cookie := &http.Cookie{
-				Name:     "access-token",
-				Value:    accessToken,
-				Expires:  expires,
-				Path:     "/",
-				Domain:   "",
-				Secure:   false,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-			}
-			http.SetCookie(context.Writer, cookie)
-			context.JSON(http.StatusOK, data)
-		} else {
-			data := gin.H{"code": 1, "msg": "access token is null"}
-			context.JSON(http.StatusInternalServerError, data)
-		}
-	})
-
+	router.POST("/auth/login_token", postTokenHandler)
 	err := router.Run(address)
 	if err != nil {
 		return
@@ -101,6 +67,42 @@ func chatHandler(c *gin.Context) {
 	_, err := c.Cookie("access-token")
 	if nil != err {
 		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+}
+
+// postTokenHandler 使用token登陆
+func postTokenHandler(c *gin.Context) {
+	next := c.PostForm("next")
+	if "" == next {
+		next = "/"
+	}
+	accessToken := c.PostForm("access_token")
+	if "" != accessToken {
+		payload, err := CheckAccessToken(accessToken)
+		if nil != err {
+			data := gin.H{"code": 1, "msg": err.Error()}
+			c.JSON(http.StatusInternalServerError, data)
+		}
+		exp, _ := payload["exp"].(float64)
+		expires := time.Unix(int64(exp), 0)
+		data := gin.H{"code": 0, "url": next}
+		//c.SetSameSite(http.SameSiteLaxMode)
+		//c.SetCookie("access-token", accessToken, int(expires.Sub(time.Now()).Seconds()), "/", "", false, true)
+		cookie := &http.Cookie{
+			Name:     "access-token",
+			Value:    accessToken,
+			Expires:  expires,
+			Path:     "/",
+			Domain:   "",
+			Secure:   false,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		}
+		http.SetCookie(c.Writer, cookie)
+		c.JSON(http.StatusOK, data)
+	} else {
+		data := gin.H{"code": 1, "msg": "access token is null"}
+		c.JSON(http.StatusInternalServerError, data)
 	}
 }
 
