@@ -71,8 +71,19 @@ func ServerStart(address string, param *PandoraParam) {
 			exp, _ := payload["exp"].(float64)
 			expires := time.Unix(int64(exp), 0)
 			data := gin.H{"code": 0, "url": next}
-			context.SetSameSite(http.SameSiteLaxMode)
-			context.SetCookie("access-token", accessToken, int(expires.Sub(time.Now()).Seconds()), "/", "", false, true)
+			//context.SetSameSite(http.SameSiteLaxMode)
+			//context.SetCookie("access-token", accessToken, int(expires.Sub(time.Now()).Seconds()), "/", "", false, true)
+			cookie := &http.Cookie{
+				Name:     "access-token",
+				Value:    accessToken,
+				Expires:  expires,
+				Path:     "/",
+				Domain:   "",
+				Secure:   false,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+			}
+			http.SetCookie(context.Writer, cookie)
 			context.JSON(http.StatusOK, data)
 		} else {
 			data := gin.H{"code": 1, "msg": "access token is null"}
