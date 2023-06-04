@@ -37,8 +37,8 @@ func main() {
 
 	cloudParam := web.PandoraParam{
 		ApiPrefix:     gptPre,
-		PandoraSentry: false,
-		BuildId:       "",
+		PandoraSentry: "false",
+		BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
 	}
 	web.ServerStart(server, &cloudParam)
 }
