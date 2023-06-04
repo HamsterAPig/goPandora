@@ -37,14 +37,16 @@ func ServerStart(address string, param *PandoraParam) {
 			return string(jsonData)
 		},
 	})
-
+	// 加载模板
 	router.LoadHTMLGlob("web/gin/templates/*")
 
+	// 加载静态文件
 	router.Static("/_next", "web/gin/static/_next")
 	router.Static("/fonts", "web/gin/static/fonts")
 	router.Static("/ulp", "web/gin/static/ulp")
 	router.Static("/static", "web/gin/static")
 
+	// 配置路由
 	router.GET("/api/auth/session", sessionAPIHandler)
 
 	router.GET("/", func(c *gin.Context) {
@@ -61,6 +63,8 @@ func ServerStart(address string, param *PandoraParam) {
 		})
 	})
 	router.POST("/auth/login_token", postTokenHandler)
+
+	// 启动服务
 	err := router.Run(address)
 	if err != nil {
 		return
@@ -69,13 +73,24 @@ func ServerStart(address string, param *PandoraParam) {
 
 // sessionAPIHandler 获取用户信息接口
 func sessionAPIHandler(c *gin.Context) {
+	// 从cookie中获取access-token
 	accessToken, _ := c.Cookie("access-token")
+	if "" == accessToken { // 如果没有获取到access-token,返回无效信息
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid token",
+		})
+		return
+	}
+
+	// 解析、验证token并且返回值
 	userID, email, _, payload, err := getUserInfo(accessToken)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 	}
+
+	// 序列化payload的过期时间
 	exp, ok := payload["exp"].(float64)
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -83,6 +98,8 @@ func sessionAPIHandler(c *gin.Context) {
 		})
 	}
 	expTimestamp := time.Unix(int64(exp), 0).Format("2006-01-02 15:04:05")
+
+	// 构造返回json
 	ret := &gin.H{
 		"user": gin.H{
 			"id":      userID,
@@ -101,17 +118,21 @@ func sessionAPIHandler(c *gin.Context) {
 
 // chatHandler 主入口函数
 func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
+	// 从cookie中获取access-token
 	accessToken, _ := ctx.Cookie("access-token")
+
+	// 解析、验证token
 	userID, email, _, _, err := getUserInfo(accessToken)
-	if err != nil {
+	if err != nil { // 如果验证的token出现错误则跳转到/login
 		ctx.Redirect(http.StatusFound, "/login")
 	}
 
 	query := ctx.Request.URL.Query()
-	if conversationID != "" {
+	if conversationID != "" { // 如果闭包函数没有conversationID,则设置
 		query.Set("chatId", conversationID)
 	}
 
+	// 构造返回json
 	props := &gin.H{
 		"props": gin.H{
 			"pageProps": gin.H{
@@ -142,11 +163,13 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 		"scriptLoader": []interface{}{},
 	}
 
+	// 根据绘画ID选择模板
 	templateHtml := "detail.html"
 	if conversationID == "" {
 		templateHtml = "chat.html"
 	}
 
+	// 返回渲染好的模板
 	ctx.HTML(http.StatusOK, templateHtml, gin.H{
 		"pandora_sentry": param.PandoraSentry,
 		"api_prefix":     param.ApiPrefix,
@@ -156,20 +179,28 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 
 // postTokenHandler 使用token登陆
 func postTokenHandler(c *gin.Context) {
+	// 从post数据中获取next url
 	next := c.PostForm("next")
-	if "" == next {
+	if "" == next { // 如果获取到的next url为空的话则设置为/
 		next = "/"
 	}
+	// 从post数据中获取access-token
 	accessToken := c.PostForm("access_token")
 	if "" != accessToken {
+		// 检查access-token
 		payload, err := CheckAccessToken(accessToken)
 		if nil != err {
 			data := gin.H{"code": 1, "msg": err.Error()}
 			c.JSON(http.StatusInternalServerError, data)
 		}
+
+		// 检查token的过期时间
 		exp, _ := payload["exp"].(float64)
 		expires := time.Unix(int64(exp), 0)
-		data := gin.H{"code": 0, "url": next}
+
+		data := gin.H{"code": 0, "url": next} // 返回状态
+
+		// 设置cookie
 		cookie := &http.Cookie{
 			Name:     "access-token",
 			Value:    accessToken,
@@ -182,7 +213,7 @@ func postTokenHandler(c *gin.Context) {
 		}
 		http.SetCookie(c.Writer, cookie)
 		c.JSON(http.StatusOK, data)
-	} else {
+	} else { // 错误的access-token处理
 		data := gin.H{"code": 1, "msg": "access token is null"}
 		c.JSON(http.StatusInternalServerError, data)
 	}
@@ -216,6 +247,7 @@ func getUserInfo(accessToken string) (string, string, string, jwt.MapClaims, err
 
 // CheckAccessToken 检查token并且返回payload
 func CheckAccessToken(accessToken string) (jwt.MapClaims, error) {
+	// 从Pandora的源码里面拿到的openai的公钥
 	publicKey := `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA27rOErDOPvPc3mOADYtQ
 BeenQm5NS5VHVaoO/Zmgsf1M0Wa/2WgLm9jX65Ru/K8Az2f4MOdpBxxLL686ZS+K
