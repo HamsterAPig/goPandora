@@ -42,6 +42,7 @@ func ServerStart(address string, param *PandoraParam) {
 	router.Static("/_next", "web/gin/static/_next")
 	router.Static("/fonts", "web/gin/static/fonts")
 	router.Static("/ulp", "web/gin/static/ulp")
+	router.Static("/static", "web/gin/static")
 
 	router.GET("/", chatHandler)
 	router.GET("/login", func(context *gin.Context) {
