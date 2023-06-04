@@ -28,13 +28,13 @@ func ServerStart(address string, param *PandoraParam) {
 			return template.HTML(s)
 		},
 		"lower": strings.ToLower,
-		"tojson": func(v interface{}) template.HTML {
+		"tojson": func(v interface{}) string {
 			jsonData, err := json.Marshal(v)
 			if err != nil {
 				logger.Error("json.Marshal failed", zap.Error(err))
 				return ""
 			}
-			return template.HTML(jsonData)
+			return string(jsonData)
 		},
 	})
 
@@ -106,18 +106,17 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 		"gssp":         true,
 		"scriptLoader": []interface{}{},
 	}
-	//propsStr := fmt.Sprint(props)
 
-	//templateHtml := "detail.html"
-	//if conversationID == "" {
-	//	templateHtml = "chat.html"
-	//}
-	ctx.JSON(http.StatusOK, props)
-	//ctx.HTML(http.StatusOK, templateHtml, gin.H{
-	//	"pandora_sentry": param.PandoraSentry,
-	//	"api_prefix":     param.ApiPrefix,
-	//	"props":          propsStr,
-	//})
+	templateHtml := "detail.html"
+	if conversationID == "" {
+		templateHtml = "chat.html"
+	}
+
+	ctx.HTML(http.StatusOK, templateHtml, gin.H{
+		"pandora_sentry": param.PandoraSentry,
+		"api_prefix":     param.ApiPrefix,
+		"props":          props,
+	})
 }
 
 // postTokenHandler 使用token登陆
