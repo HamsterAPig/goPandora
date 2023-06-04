@@ -15,7 +15,7 @@ import (
 
 type PandoraParam struct {
 	ApiPrefix     string
-	PandoraSentry bool
+	PandoraSentry string
 	BuildId       string
 }
 
@@ -45,7 +45,9 @@ func ServerStart(address string, param *PandoraParam) {
 	router.Static("/ulp", "web/gin/static/ulp")
 	router.Static("/static", "web/gin/static")
 
-	router.GET("/", chatHandler)
+	router.GET("/", func(c *gin.Context) {
+		chatHandler(c, param, "")
+	})
 	router.GET("/login", func(context *gin.Context) {
 		context.Redirect(http.StatusMovedPermanently, "/auth/login")
 	})
@@ -63,11 +65,59 @@ func ServerStart(address string, param *PandoraParam) {
 	}
 }
 
-func chatHandler(c *gin.Context) {
-	_, err := c.Cookie("access-token")
-	if nil != err {
-		c.Redirect(http.StatusMovedPermanently, "/login")
+func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
+	accessToken, _ := ctx.Cookie("access-token")
+	userID, email, _, _, err := getUserInfo(accessToken)
+	if err != nil {
+		ctx.Redirect(http.StatusFound, "/login")
 	}
+
+	query := ctx.Request.URL.Query()
+	if conversationID != "" {
+		query.Set("chatId", conversationID)
+	}
+
+	props := gin.H{
+		"props": gin.H{
+			"pageProps": gin.H{
+				"user": gin.H{
+					"id":      userID,
+					"name":    email,
+					"email":   email,
+					"image":   nil,
+					"picture": nil,
+					"groups":  []interface{}{},
+				},
+				"serviceStatus": gin.H{},
+				"userCountry":   "US",
+				"geoOk":         true,
+				"serviceAnnouncement": gin.H{
+					"paid":   gin.H{},
+					"public": gin.H{},
+				},
+				"isUserInCanPayGroup": true,
+			},
+			"__N_SSP": true,
+		},
+		"page":         "/",
+		"query":        query,
+		"buildId":      param.BuildId,
+		"isFallback":   false,
+		"gssp":         true,
+		"scriptLoader": []interface{}{},
+	}
+	//propsStr := fmt.Sprint(props)
+
+	//templateHtml := "detail.html"
+	//if conversationID == "" {
+	//	templateHtml = "chat.html"
+	//}
+	ctx.JSON(http.StatusOK, props)
+	//ctx.HTML(http.StatusOK, templateHtml, gin.H{
+	//	"pandora_sentry": param.PandoraSentry,
+	//	"api_prefix":     param.ApiPrefix,
+	//	"props":          propsStr,
+	//})
 }
 
 // postTokenHandler 使用token登陆
@@ -86,8 +136,6 @@ func postTokenHandler(c *gin.Context) {
 		exp, _ := payload["exp"].(float64)
 		expires := time.Unix(int64(exp), 0)
 		data := gin.H{"code": 0, "url": next}
-		//c.SetSameSite(http.SameSiteLaxMode)
-		//c.SetCookie("access-token", accessToken, int(expires.Sub(time.Now()).Seconds()), "/", "", false, true)
 		cookie := &http.Cookie{
 			Name:     "access-token",
 			Value:    accessToken,
