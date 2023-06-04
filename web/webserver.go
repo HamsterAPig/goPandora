@@ -53,7 +53,7 @@ func chatHandler(c *gin.Context) {
 }
 
 // 从token获取用户信息
-func getUserInfo(accessToken string) (bool, string, string, string, jwt.MapClaims, error) {
+func getUserInfo(accessToken string) (string, string, string, jwt.MapClaims, error) {
 	payload, err := CheckAccessToken(accessToken)
 	if nil != err {
 		logger.Error("CheckAccessToken failed", zap.Error(err))
@@ -62,7 +62,7 @@ func getUserInfo(accessToken string) (bool, string, string, string, jwt.MapClaim
 	var email, userID string
 	if profile, ok := payload["https://api.openai.com/profile"].(map[string]interface{}); ok {
 		if emailVal, ok := profile["email"].(string); !ok {
-			return false, "", "", "", nil, fmt.Errorf("failed to get email")
+			return "", "", "", nil, fmt.Errorf("failed to get email")
 		} else {
 			email = emailVal
 		}
@@ -70,12 +70,12 @@ func getUserInfo(accessToken string) (bool, string, string, string, jwt.MapClaim
 
 	if auth, ok := payload["https://api.openai.com/auth"].(map[string]interface{}); ok {
 		if userIDVal, ok := auth["user_id"].(string); !ok {
-			return false, "", "", "", nil, fmt.Errorf("failed to get user_id")
+			return "", "", "", nil, fmt.Errorf("failed to get user_id")
 		} else {
 			userID = userIDVal
 		}
 	}
-	return true, userID, email, accessToken, payload, nil
+	return userID, email, accessToken, payload, nil
 }
 
 // CheckAccessToken 检查token并且返回payload
