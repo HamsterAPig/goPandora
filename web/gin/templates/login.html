@@ -217,14 +217,14 @@
                             <div class="ce7821f58 c9ee3d098">
                                 <div class="c83779892">
                                     <div class="input-wrapper _input-wrapper">
-                                        <div class="c51fadc8b c7cc0d651 text c183d9a0a{{ .' c3ab3f08e c666327b8' if error else '' }}"
+                                        <div class="c51fadc8b c7cc0d651 text c183d9a0a{{ ' c3ab3f08e c666327b8' if error else '' }}"
                                              data-action-text="" data-alternate-action-text=""><label
                                                 class="c41b9071b no-js c6e062879 cd80352de" for="username">Email
                                             address</label><input type="hidden" id="txtNext" name="next"
-                                                                  value="{{ .next }}"/><input
-                                                class="input cdb43277e c07239cfd{{ .' cca61e7fa c224a8982 c08661137' if error else '' }}"
+                                                                  value="{[ .next  ]}"/><input
+                                                class="input cdb43277e c07239cfd{{ ' cca61e7fa c224a8982 c08661137' if error else '' }}"
                                                 inputMode="email" name="username" id="username" type="text"
-                                                value="{{ .username }}" required autoComplete="username"
+                                                value="{[ .username  ]}" required autoComplete="username"
                                                 autoCapitalize="none" spellCheck="false" autoFocus/>
                                             <div class="c41b9071b js-required c6e062879 cd80352de"
                                                  data-dynamic-label-for="username" aria-hidden="true">Email address
@@ -232,11 +232,11 @@
                                         </div>
                                     </div>
                                     <div class="input-wrapper _input-wrapper">
-                                        <div class="c51fadc8b c7cc0d651 password c9378f091{{ .' c3ab3f08e c666327b8' if error else '' }}"
+                                        <div class="c51fadc8b c7cc0d651 password c9378f091{{ ' c3ab3f08e c666327b8' if error else '' }}"
                                              data-action-text="" data-alternate-action-text=""><label
                                                 class="c41b9071b no-js c6e062879 c3c2bcd98"
                                                 for="password">Password</label><input
-                                                class="input cdb43277e c94bb61d1{{ .' cca61e7fa c224a8982 c08661137' if error else '' }}"
+                                                class="input cdb43277e c94bb61d1{{ ' cca61e7fa c224a8982 c08661137' if error else '' }}"
                                                 name="password" id="password" type="password" required
                                                 autoComplete="current-password" autoCapitalize="none" spellCheck="false"
                                                 autoFocus/>
@@ -258,23 +258,21 @@
                                         </div>
                                     </div>
                                     <div class="input-wrapper _input-wrapper">
-                                        <div class="c51fadc8b c7cc0d651 text c183d9a0a{{ .' c3ab3f08e c666327b8' if error else '' }}"
+                                        <div class="c51fadc8b c7cc0d651 text c183d9a0a{{ ' c3ab3f08e c666327b8' if error else '' }}"
                                              data-action-text="" data-alternate-action-text=""><label
                                                 class="c41b9071b no-js c6e062879 cd80352de" for="mfa_code">MFA
                                             Code</label><input
-                                                class="input cdb43277e c07239cfd{{ .' cca61e7fa c224a8982 c08661137' if error else '' }}"
+                                                class="input cdb43277e c07239cfd{{ ' cca61e7fa c224a8982 c08661137' if error else '' }}"
                                                 name="mfa_code" type="text" autoCapitalize="none" spellCheck="false"
                                                 placeholder="Optional"/>
                                             <div class="c41b9071b js-required c6e062879 cd80352de"
                                                  data-dynamic-label-for="mfa_code" aria-hidden="true">MFA Code
                                             </div>
-                                        </div>
-                                        {{ .if error }}
+                                        </div>{% if error %}
                                         <span id="error-element-password" class="ulp-input-error-message"
                                               data-error-code="wrong-email-credentials"><span
                                                 class="ulp-input-error-icon" role="img"
-                                                aria-label="Error"></span>{{ .error }}</span>{{ .endif }}
-                                    </div>
+                                                aria-label="Error"></span>{[ .error  ]}</span>{% endif %}</div>
                                 </div>
                             </div>
                             <div class="cc336b8c1">
