@@ -2,11 +2,12 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 	logger "goPandora/internal/log"
 	"html/template"
-	"net/http"
 	"strings"
 )
 
@@ -35,27 +36,74 @@ func ServerStart(address string, param *PandoraParam) {
 		},
 	})
 
-	router.LoadHTMLFiles("web/gin/templates/login.html")
+	router.LoadHTMLGlob("web/gin/templates/*")
 
 	router.Static("/_next", "web/gin/static/_next")
 	router.Static("/fonts", "web/gin/static/fonts")
 	router.Static("/ulp", "web/gin/static/ulp")
 
-	//router.GET("/404.html", func(c *gin.Context) {
-	//	c.HTML(http.StatusOK, "404.html", gin.H{
-	//		"pandora_sentry": "false",
-	//		"api_prefix":     chatGPTAPI,
-	//	})
-	//})
-	router.GET("/auth/login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.html", gin.H{
-			"pandora_sentry": param.PandoraSentry,
-			"api_prefix":     param.ApiPrefix,
-			"error":          "错误",
-		})
-	})
 	err := router.Run(address)
 	if err != nil {
 		return
 	}
+}
+
+func chatHandler(c *gin.Context) {
+
+}
+
+// 从token获取用户信息
+func getUserInfo(accessToken string) {
+
+}
+
+// 检查token并且返回payload
+func CheckAccessToken(accessToken string) (jwt.Claims, error) {
+	publicKey := `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA27rOErDOPvPc3mOADYtQ
+BeenQm5NS5VHVaoO/Zmgsf1M0Wa/2WgLm9jX65Ru/K8Az2f4MOdpBxxLL686ZS+K
+7eJC/oOnrxCRzFYBqQbYo+JMeqNkrCn34yed4XkX4ttoHi7MwCEpVfb05Qf/ZAmN
+I1XjecFYTyZQFrd9LjkX6lr05zY6aM/+MCBNeBWp35pLLKhiq9AieB1wbDPcGnqx
+lXuU/bLgIyqUltqLkr9JHsf/2T4VrXXNyNeQyBq5wjYlRkpBQDDDNOcdGpx1buRr
+Z2hFyYuXDRrMcR6BQGC0ur9hI5obRYlchDFhlb0ElsJ2bshDDGRk5k3doHqbhj2I
+gQIDAQAB
+-----END PUBLIC KEY-----`
+
+	// 解析token
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+		publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKey))
+		if nil != err {
+			return nil, fmt.Errorf("failed to parse public key: %v", err)
+		}
+		return publicKey, nil
+	})
+
+	if nil != err {
+		return nil, fmt.Errorf("failed to parse token: %v", err)
+	}
+
+	// 验证 JWT 的有效性
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid JWT")
+	}
+
+	// 获取 payload
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("failed to get JWT claims")
+	}
+	if _, ok := claims["scope"]; !ok {
+		return nil, fmt.Errorf("miss scope")
+	}
+	scope := claims["scope"]
+	if !strings.Contains(scope.(string), "model.read") || !strings.Contains(scope.(string), "model.request") {
+		return nil, fmt.Errorf("invalid scope")
+	}
+	_, ok1 := claims["https://api.openai.com/auth"]
+	_, ok2 := claims["https://api.openai.com/profile"]
+	if !ok1 || !ok2 {
+		return nil, fmt.Errorf("belonging to an unregistered user")
+	}
+
+	return claims, nil
 }
