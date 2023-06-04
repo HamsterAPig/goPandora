@@ -53,12 +53,33 @@ func chatHandler(c *gin.Context) {
 }
 
 // 从token获取用户信息
-func getUserInfo(accessToken string) {
+func getUserInfo(accessToken string) (bool, string, string, string, jwt.MapClaims, error) {
+	payload, err := CheckAccessToken(accessToken)
+	if nil != err {
+		logger.Error("CheckAccessToken failed", zap.Error(err))
+	}
+	// 使用类型断言访问声明中的属性
+	var email, userID string
+	if profile, ok := payload["https://api.openai.com/profile"].(map[string]interface{}); ok {
+		if emailVal, ok := profile["email"].(string); !ok {
+			return false, "", "", "", nil, fmt.Errorf("failed to get email")
+		} else {
+			email = emailVal
+		}
+	}
 
+	if auth, ok := payload["https://api.openai.com/auth"].(map[string]interface{}); ok {
+		if userIDVal, ok := auth["user_id"].(string); !ok {
+			return false, "", "", "", nil, fmt.Errorf("failed to get user_id")
+		} else {
+			userID = userIDVal
+		}
+	}
+	return true, userID, email, accessToken, payload, nil
 }
 
-// 检查token并且返回payload
-func CheckAccessToken(accessToken string) (jwt.Claims, error) {
+// CheckAccessToken 检查token并且返回payload
+func CheckAccessToken(accessToken string) (jwt.MapClaims, error) {
 	publicKey := `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA27rOErDOPvPc3mOADYtQ
 BeenQm5NS5VHVaoO/Zmgsf1M0Wa/2WgLm9jX65Ru/K8Az2f4MOdpBxxLL686ZS+K
