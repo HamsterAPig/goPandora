@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	logger "goPandora/internal/log"
 	"html/template"
+	"net/http"
 	"strings"
 )
 
@@ -42,6 +43,18 @@ func ServerStart(address string, param *PandoraParam) {
 	router.Static("/fonts", "web/gin/static/fonts")
 	router.Static("/ulp", "web/gin/static/ulp")
 
+	router.GET("/", chatHandler)
+	router.GET("/login", func(context *gin.Context) {
+		context.Redirect(http.StatusMovedPermanently, "/auth/login")
+	})
+	router.GET("/auth/login", func(context *gin.Context) {
+		next := context.Query("next")
+		context.HTML(http.StatusOK, "login.html", gin.H{
+			"api_prefix": param.ApiPrefix,
+			"next":       next,
+		})
+	})
+
 	err := router.Run(address)
 	if err != nil {
 		return
@@ -49,7 +62,10 @@ func ServerStart(address string, param *PandoraParam) {
 }
 
 func chatHandler(c *gin.Context) {
-
+	_, err := c.Cookie("access-token")
+	if nil != err {
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
 }
 
 // 从token获取用户信息
