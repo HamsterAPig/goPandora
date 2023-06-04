@@ -45,6 +45,8 @@ func ServerStart(address string, param *PandoraParam) {
 	router.Static("/ulp", "web/gin/static/ulp")
 	router.Static("/static", "web/gin/static")
 
+	router.GET("/api/auth/session", sessionAPIHandler)
+
 	router.GET("/", func(c *gin.Context) {
 		chatHandler(c, param, "")
 	})
@@ -65,6 +67,39 @@ func ServerStart(address string, param *PandoraParam) {
 	}
 }
 
+// sessionAPIHandler 获取用户信息接口
+func sessionAPIHandler(c *gin.Context) {
+	accessToken, _ := c.Cookie("access-token")
+	userID, email, _, payload, err := getUserInfo(accessToken)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+	}
+	exp, ok := payload["exp"].(float64)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid token because exp is not float64",
+		})
+	}
+	expTimestamp := time.Unix(int64(exp), 0).Format("2006-01-02 15:04:05")
+	ret := &gin.H{
+		"user": gin.H{
+			"id":      userID,
+			"name":    email,
+			"email":   email,
+			"image":   nil,
+			"picture": nil,
+			"groups":  []interface{}{},
+		},
+		"expires":      expTimestamp,
+		"accessToken":  accessToken,
+		"authProvider": "auth0",
+	}
+	c.JSON(http.StatusOK, ret)
+}
+
+// chatHandler 主入口函数
 func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 	accessToken, _ := ctx.Cookie("access-token")
 	userID, email, _, _, err := getUserInfo(accessToken)
@@ -77,7 +112,7 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 		query.Set("chatId", conversationID)
 	}
 
-	props := gin.H{
+	props := &gin.H{
 		"props": gin.H{
 			"pageProps": gin.H{
 				"user": gin.H{
@@ -153,7 +188,7 @@ func postTokenHandler(c *gin.Context) {
 	}
 }
 
-// 从token获取用户信息
+// getUserInfo 从token获取用户信息
 func getUserInfo(accessToken string) (string, string, string, jwt.MapClaims, error) {
 	payload, err := CheckAccessToken(accessToken)
 	if nil != err {
