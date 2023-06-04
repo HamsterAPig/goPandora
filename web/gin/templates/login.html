@@ -268,11 +268,11 @@
                                             <div class="c41b9071b js-required c6e062879 cd80352de"
                                                  data-dynamic-label-for="mfa_code" aria-hidden="true">MFA Code
                                             </div>
-                                        </div>{% if error %}
+                                        </div>{[ if.error ]}
                                         <span id="error-element-password" class="ulp-input-error-message"
                                               data-error-code="wrong-email-credentials"><span
                                                 class="ulp-input-error-icon" role="img"
-                                                aria-label="Error"></span>{[ .error  ]}</span>{% endif %}</div>
+                                                aria-label="Error"></span>{[ .error  ]}</span>{[ end ]}</div>
                                 </div>
                             </div>
                             <div class="cc336b8c1">

@@ -35,5 +35,10 @@ func main() {
 	logger.Debug("proxys", zap.Strings("proxys", proxies))
 	logger.Debug("CHATGPT_API_PREFIX", zap.String("CHATGPT_API_PREFIX", gptPre))
 
-	web.ServerStart(server, gptPre)
+	cloudParam := web.PandoraParam{
+		ApiPrefix:     gptPre,
+		PandoraSentry: false,
+		BuildId:       "",
+	}
+	web.ServerStart(server, &cloudParam)
 }

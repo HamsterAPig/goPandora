@@ -10,7 +10,13 @@ import (
 	"strings"
 )
 
-func ServerStart(address string, chatGPTAPI string) {
+type PandoraParam struct {
+	ApiPrefix     string
+	PandoraSentry bool
+	BuildId       string
+}
+
+func ServerStart(address string, param *PandoraParam) {
 	router := gin.Default()
 	router.Delims("{[", "]}")
 	// 注册自定义模板函数
@@ -43,8 +49,9 @@ func ServerStart(address string, chatGPTAPI string) {
 	//})
 	router.GET("/auth/login", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"pandora_sentry": "false",
-			"api_prefix":     chatGPTAPI,
+			"pandora_sentry": param.PandoraSentry,
+			"api_prefix":     param.ApiPrefix,
+			"error":          "错误",
 		})
 	})
 	err := router.Run(address)
