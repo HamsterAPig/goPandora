@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type PandoraParam struct {
@@ -54,6 +55,29 @@ func ServerStart(address string, param *PandoraParam) {
 			"api_prefix": param.ApiPrefix,
 			"next":       next,
 		})
+	})
+	router.POST("/auth/login_token", func(context *gin.Context) {
+		next := context.PostForm("next")
+		if "" == next {
+			next = "/"
+		}
+		accessToken := context.PostForm("access_token")
+		if "" != accessToken {
+			payload, err := CheckAccessToken(accessToken)
+			if nil != err {
+				data := gin.H{"code": 1, "msg": err.Error()}
+				context.JSON(http.StatusInternalServerError, data)
+			}
+			exp, _ := payload["exp"].(float64)
+			expires := time.Unix(int64(exp), 0)
+			data := gin.H{"code": 0, "url": next}
+			context.SetSameSite(http.SameSiteLaxMode)
+			context.SetCookie("access-token", accessToken, int(expires.Sub(time.Now()).Seconds()), "/", "", false, true)
+			context.JSON(http.StatusOK, data)
+		} else {
+			data := gin.H{"code": 1, "msg": "access token is null"}
+			context.JSON(http.StatusInternalServerError, data)
+		}
 	})
 
 	err := router.Run(address)

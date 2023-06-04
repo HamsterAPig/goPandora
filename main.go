@@ -13,7 +13,7 @@ func main() {
 	logger.InitLogger("debug")
 
 	// 绑定命令行参数
-	pflag.StringP("server", "s", "127.0.0.1:8080", "server address")
+	pflag.StringP("server", "s", ":8080", "server address")
 	pflag.StringSliceP("proxys", "p", nil, "proxy address")
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
 	pflag.Parse()
