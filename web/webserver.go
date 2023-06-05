@@ -41,7 +41,7 @@ func ServerStart(address string, param *PandoraParam) {
 	router.LoadHTMLGlob("web/gin/templates/*")
 
 	// 加载静态文件
-	router.Static("/_next", "web/gin/static/_next")
+	router.Static("/_next/static", "web/gin/static/_next/static")
 	router.Static("/fonts", "web/gin/static/fonts")
 	router.Static("/ulp", "web/gin/static/ulp")
 	router.Static("/static", "web/gin/static")
