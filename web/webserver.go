@@ -53,6 +53,13 @@ func ServerStart(address string, param *PandoraParam) {
 	router.GET("/", func(c *gin.Context) {
 		chatHandler(c, param, "")
 	})
+	router.GET("/c", func(c *gin.Context) {
+		chatHandler(c, param, "")
+	})
+	router.GET("/c/:chatID", func(c *gin.Context) {
+		chatHandler(c, param, c.Param("chatID"))
+	})
+
 	router.GET("/login", func(context *gin.Context) {
 		context.Redirect(http.StatusMovedPermanently, "/auth/login")
 	})
@@ -189,13 +196,8 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 		ctx.Redirect(http.StatusFound, "/login")
 	}
 
-	query := ctx.Request.URL.Query()
-	if conversationID != "" { // 如果闭包函数没有conversationID,则设置
-		query.Set("chatId", conversationID)
-	}
-
 	// 构造返回json
-	props := &gin.H{
+	props := gin.H{
 		"props": gin.H{
 			"pageProps": gin.H{
 				"user": gin.H{
@@ -218,17 +220,19 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 			"__N_SSP": true,
 		},
 		"page":         "/",
-		"query":        query,
+		"query":        "{}",
 		"buildId":      param.BuildId,
 		"isFallback":   false,
 		"gssp":         true,
 		"scriptLoader": []interface{}{},
 	}
 
-	// 根据绘画ID选择模板
-	templateHtml := "detail.html"
-	if conversationID == "" {
-		templateHtml = "chat.html"
+	// 根据会话ID选择模板
+	templateHtml := "chat.html"
+	if "" != conversationID {
+		templateHtml = "detail.html"
+		props["page"] = "/c/[chatId]"
+		props["query"] = gin.H{"chatId": conversationID}
 	}
 
 	// 返回渲染好的模板
