@@ -50,6 +50,7 @@ func ServerStart(address string, param *PandoraParam) {
 	router.GET("/api/auth/session", sessionAPIHandler)
 	router.GET("/api/accounts/check/v4-2023-04-27", checkAPIHandler)
 	router.GET(fmt.Sprintf("/_next/data/%s/index.json", param.BuildId), userInfoHandler)
+	router.GET(fmt.Sprintf("/_next/data/%s/c/:conversationID", param.BuildId), userInfoHandler)
 
 	router.GET("/", func(c *gin.Context) {
 		chatHandler(c, param, "")
