@@ -73,6 +73,10 @@ func ServerStart(address string, param *PandoraParam) {
 		})
 	})
 	router.POST("/auth/login_token", postTokenHandler)
+	router.GET("/auth/logout", func(context *gin.Context) {
+		context.SetCookie("access-token", "", -1, "/", "", false, true)
+		context.Redirect(http.StatusMovedPermanently, "/auth/login")
+	})
 
 	// 启动服务
 	err := router.Run(address)
