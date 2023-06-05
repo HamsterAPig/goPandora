@@ -49,7 +49,7 @@ func ServerStart(address string, param *PandoraParam) {
 	// 配置路由
 	router.GET("/api/auth/session", sessionAPIHandler)
 	router.GET("/api/accounts/check/v4-2023-04-27", checkAPIHandler)
-	router.GET("/_next/data/cx416mT2Lb0ZTj5FxFg1l/index.json", userInfoHandler)
+	router.GET(fmt.Sprintf("/_next/data/%s/index.json", param.BuildId), userInfoHandler)
 
 	router.GET("/", func(c *gin.Context) {
 		chatHandler(c, param, "")
