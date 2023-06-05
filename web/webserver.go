@@ -49,6 +49,7 @@ func ServerStart(address string, param *PandoraParam) {
 	// 配置路由
 	router.GET("/api/auth/session", sessionAPIHandler)
 	router.GET("/api/accounts/check/v4-2023-04-27", checkAPIHandler)
+	router.GET("/_next/data/cx416mT2Lb0ZTj5FxFg1l/index.json", userInfoHandler)
 
 	router.GET("/", func(c *gin.Context) {
 		chatHandler(c, param, "")
@@ -79,6 +80,43 @@ func ServerStart(address string, param *PandoraParam) {
 	}
 }
 
+func userInfoHandler(c *gin.Context) {
+	userID, email, _, _, err := getUserInfo(c)
+	if nil != err {
+		data := gin.H{
+			"pageProps": gin.H{
+				"__N_REDIRECT":        "/auth/login?",
+				"__N_REDIRECT_STATUS": 307,
+			},
+			"__N_SSP": true,
+		}
+		c.JSON(http.StatusBadRequest, data)
+	}
+	ret := gin.H{
+		"pageProps": gin.H{
+			"user": gin.H{
+				"id":      userID,
+				"name":    email,
+				"email":   email,
+				"image":   nil,
+				"picture": nil,
+				"groups":  []interface{}{},
+			},
+			"serviceStatus": gin.H{},
+			"userCountry":   "US",
+			"geoOk":         true,
+			"serviceAnnouncement": gin.H{
+				"paid":   gin.H{},
+				"public": gin.H{},
+			},
+			"isUserInCanPayGroup": true,
+		},
+		"__N_SSP": true,
+	}
+	c.JSON(http.StatusOK, ret)
+}
+
+// checkAPIHandler 返回一组json用来给当前账号授予一些网页版的视觉上面的特性
 func checkAPIHandler(c *gin.Context) {
 	// 下面这组数据是从Pandora中直接拿出来的
 	data := gin.H{
@@ -142,17 +180,8 @@ func checkAPIHandler(c *gin.Context) {
 
 // sessionAPIHandler 获取用户信息接口
 func sessionAPIHandler(c *gin.Context) {
-	// 从cookie中获取access-token
-	accessToken, _ := c.Cookie("access-token")
-	if "" == accessToken { // 如果没有获取到access-token,返回无效信息
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid token",
-		})
-		return
-	}
-
 	// 解析、验证token并且返回值
-	userID, email, _, payload, err := getUserInfo(accessToken)
+	userID, email, accessToken, payload, err := getUserInfo(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -187,13 +216,11 @@ func sessionAPIHandler(c *gin.Context) {
 
 // chatHandler 主入口函数
 func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
-	// 从cookie中获取access-token
-	accessToken, _ := ctx.Cookie("access-token")
-
 	// 解析、验证token
-	userID, email, _, _, err := getUserInfo(accessToken)
+	userID, email, _, _, err := getUserInfo(ctx)
 	if err != nil { // 如果验证的token出现错误则跳转到/login
 		ctx.Redirect(http.StatusFound, "/login")
+		return
 	}
 
 	// 构造返回json
@@ -286,7 +313,11 @@ func postTokenHandler(c *gin.Context) {
 }
 
 // getUserInfo 从token获取用户信息
-func getUserInfo(accessToken string) (string, string, string, jwt.MapClaims, error) {
+func getUserInfo(c *gin.Context) (string, string, string, jwt.MapClaims, error) {
+	accessToken, err := c.Cookie("access-token")
+	if err != nil {
+		return "", "", "", nil, err
+	}
 	payload, err := CheckAccessToken(accessToken)
 	if nil != err {
 		logger.Error("CheckAccessToken failed", zap.Error(err))
