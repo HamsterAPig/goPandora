@@ -27,6 +27,7 @@ func main() {
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
 	pflag.String("add-user-file", "", "add user file path")
 	pflag.Bool("add-user", false, "add user")
+	pflag.Bool("list-user", false, "list user")
 	pflag.Parse()
 
 	// 初始化Viperr
@@ -75,6 +76,12 @@ func main() {
 		// 读取配置文件
 		addUserByFile(filePath, sqlite)
 		return
+	} else if viper.GetBool("list-user") {
+		var users []db.User
+		sqlite.Find(&users)
+		for _, user := range users {
+			fmt.Printf("Email: %s, UUID: %s\n", user.Email, user.UUID)
+		}
 	} else {
 		cloudParam := web.PandoraParam{
 			ApiPrefix:     gptPre,
