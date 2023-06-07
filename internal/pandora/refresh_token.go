@@ -1,4 +1,4 @@
-package management_token
+package pandora
 
 import (
 	"bytes"
