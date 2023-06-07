@@ -10,6 +10,7 @@ import (
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
 	"goPandora/web"
+	"gorm.io/gorm"
 	"os"
 	"strings"
 	"time"
@@ -64,23 +65,9 @@ func main() {
 		password := readerStringByCMD("Password:")
 		refreshToken := readerStringByCMD("RefreshToken:")
 
-		token, _ := pandora.GetTokenByRefreshToken(refreshToken)
-		payload, err := pandora.CheckAccessToken(token)
-		if err != nil {
-			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
+		if addUser(refreshToken, email, password, sqlite) == nil {
 			return
 		}
-		exp, _ := payload["exp"].(float64)
-		expires := time.Unix(int64(exp), 0)
-
-		user := &db.User{
-			Email:        email,
-			Password:     password,
-			Token:        token,
-			RefreshToken: refreshToken,
-			ExpiryTime:   expires,
-		}
-		sqlite.Create(&user)
 	} else {
 		cloudParam := web.PandoraParam{
 			ApiPrefix:     gptPre,
@@ -89,6 +76,27 @@ func main() {
 		}
 		web.ServerStart(server, &cloudParam)
 	}
+}
+
+func addUser(refreshToken string, email string, password string, sqlite *gorm.DB) error {
+	token, _ := pandora.GetTokenByRefreshToken(refreshToken)
+	payload, err := pandora.CheckAccessToken(token)
+	if err != nil {
+		logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
+		return err
+	}
+	exp, _ := payload["exp"].(float64)
+	expires := time.Unix(int64(exp), 0)
+
+	user := &db.User{
+		Email:        email,
+		Password:     password,
+		Token:        token,
+		RefreshToken: refreshToken,
+		ExpiryTime:   expires,
+	}
+	sqlite.Create(&user)
+	return nil
 }
 
 func readerStringByCMD(printString string) string {
