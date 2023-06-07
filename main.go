@@ -78,6 +78,7 @@ func main() {
 	}
 }
 
+// addUser 添加用户
 func addUser(refreshToken string, email string, password string, sqlite *gorm.DB) error {
 	token, _ := pandora.GetTokenByRefreshToken(refreshToken)
 	payload, err := pandora.CheckAccessToken(token)
@@ -95,7 +96,16 @@ func addUser(refreshToken string, email string, password string, sqlite *gorm.DB
 		RefreshToken: refreshToken,
 		ExpiryTime:   expires,
 	}
-	sqlite.Create(&user)
+	res := sqlite.FirstOrCreate(&user, db.User{Email: user.Email})
+	if res.Error != nil {
+		logger.Error("sqlite.FirstOrCreate failed", zap.Error(res.Error))
+		return res.Error
+	}
+	if res.RowsAffected > 0 {
+		logger.Info("add user success")
+	} else {
+		logger.Info("The record already exists and the insert operation is skipped")
+	}
 	return nil
 }
 
