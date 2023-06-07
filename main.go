@@ -11,6 +11,7 @@ import (
 	"goPandora/internal/pandora"
 	"goPandora/web"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -58,18 +59,14 @@ func main() {
 	}
 
 	if viper.GetBool("add-user") {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Email:")
-		email, _ := reader.ReadString('\n')
-		fmt.Print("Password:")
-		password, _ := reader.ReadString('\n')
-		fmt.Print("RefreshToken:")
-		refreshToken, _ := reader.ReadString('\n')
+		email := readerStringByCMD("Email:")
+		password := readerStringByCMD("Password:")
+		refreshToken := readerStringByCMD("RefreshToken:")
 
 		token, _ := pandora.GetTokenByRefreshToken(refreshToken)
 		payload, err := pandora.CheckAccessToken(token)
 		if err != nil {
-			logger.Error("pandora.CheckAccessToken failed", zap.Error(err))
+			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
 			return
 		}
 		exp, _ := payload["exp"].(int64)
@@ -90,4 +87,12 @@ func main() {
 		}
 		web.ServerStart(server, &cloudParam)
 	}
+}
+
+func readerStringByCMD(printString string) string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(printString)
+	str, _ := reader.ReadString('\n')
+	str = strings.TrimRight(str, "\r\n")
+	return str
 }
