@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	ID           uint `gorm:"primary_key"`
+	ID           uint `gorm:"primary_key:autoIncrement"`
 	Email        *string
 	Password     *string
 	Token        string
