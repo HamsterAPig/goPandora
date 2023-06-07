@@ -25,6 +25,7 @@ func main() {
 	pflag.StringSliceP("proxys", "p", nil, "proxy address")
 	pflag.StringP("database", "b", "./data.db", "database file path")
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
+	pflag.String("add-user-file", "", "add user file path")
 	pflag.Bool("add-user", false, "add user")
 	pflag.Parse()
 
@@ -60,14 +61,53 @@ func main() {
 		return
 	}
 
-	if viper.GetBool("add-user") {
+	if viper.GetBool("add-user") { // 添加用户
 		email := readerStringByCMD("Email:")
 		password := readerStringByCMD("Password:")
 		refreshToken := readerStringByCMD("RefreshToken:")
+		comment := readerStringByCMD("Comment:") // 备注
 
-		if addUser(refreshToken, email, password, sqlite) == nil {
+		if addUser(refreshToken, email, password, comment, sqlite) == nil {
 			return
 		}
+	} else if viper.GetString("add-user-file") != "" { // 读取文件添加用户
+		// 读取配置文件
+		file, err := os.Open(viper.GetString("add-user-file"))
+		if err != nil {
+			logger.Fatal("os.Open failed", zap.Error(err))
+			return
+		}
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+
+			}
+		}(file)
+
+		// 创建一个scanner用于逐行读取配置文件
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := scanner.Text()         // 循环读取每一行
+			fields := strings.Fields(line) // 按空格分割每行字段
+			var email, password, refreshToken, notes string
+			if len(fields) == 3 {
+				email = fields[0]
+				password = fields[1]
+				refreshToken = fields[2]
+				notes = ""
+			} else if len(fields) == 4 {
+				email = fields[0]
+				password = fields[1]
+				refreshToken = fields[2]
+				notes = fields[3]
+			}
+			_ = addUser(refreshToken, email, password, notes, sqlite)
+		}
+		if err := scanner.Err(); err != nil {
+			logger.Fatal("scanner.Err failed", zap.Error(err))
+			return
+		}
+		return
 	} else {
 		cloudParam := web.PandoraParam{
 			ApiPrefix:     gptPre,
@@ -79,7 +119,7 @@ func main() {
 }
 
 // addUser 添加用户
-func addUser(refreshToken string, email string, password string, sqlite *gorm.DB) error {
+func addUser(refreshToken string, email string, password string, comment string, sqlite *gorm.DB) error {
 	token, _ := pandora.GetTokenByRefreshToken(refreshToken)
 	payload, err := pandora.CheckAccessToken(token)
 	if err != nil {
@@ -95,6 +135,7 @@ func addUser(refreshToken string, email string, password string, sqlite *gorm.DB
 		Token:        token,
 		RefreshToken: refreshToken,
 		ExpiryTime:   expires,
+		Comment:      comment,
 	}
 	res := sqlite.FirstOrCreate(&user, db.User{Email: user.Email})
 	if res.Error != nil {
