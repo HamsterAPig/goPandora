@@ -22,7 +22,7 @@ func main() {
 	pflag.StringSliceP("proxys", "p", nil, "proxy address")
 	pflag.StringP("database", "b", "./data.db", "database file path")
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
-	pflag.String("add-user", "", "add user")
+	pflag.Bool("add-user", false, "add user")
 	pflag.Parse()
 
 	// 初始化Viperr
@@ -57,7 +57,7 @@ func main() {
 		return
 	}
 
-	if viper.GetString("add-user") != "" {
+	if viper.GetBool("add-user") {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Email:")
 		email, _ := reader.ReadString('\n')
