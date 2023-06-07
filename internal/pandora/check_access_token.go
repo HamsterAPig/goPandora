@@ -3,8 +3,6 @@ package pandora
 import (
 	"fmt"
 	"github.com/golang-jwt/jwt"
-	"go.uber.org/zap"
-	logger "goPandora/internal/log"
 	"strings"
 )
 
@@ -64,7 +62,7 @@ gQIDAQAB
 func CheckUserInfo(accessToken string) (string, string, string, jwt.MapClaims, error) {
 	payload, err := CheckAccessToken(accessToken)
 	if nil != err {
-		logger.Error("CheckAccessToken failed", zap.Error(err))
+		return "", "", "", nil, fmt.Errorf("failed to check access token: %v", err)
 	}
 	// 使用类型断言访问声明中的属性
 	var email, userID string
