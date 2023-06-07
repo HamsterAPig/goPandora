@@ -44,7 +44,12 @@ func ServerStart(address string, param *PandoraParam) {
 	router.Static("/_next/static", "web/gin/static/_next/static")
 	router.Static("/fonts", "web/gin/static/fonts")
 	router.Static("/ulp", "web/gin/static/ulp")
-	router.Static("/static", "web/gin/static")
+	router.StaticFile("/service-worker.js", "web/gin/static/service-worker.js")
+	router.StaticFile("/apple-touch-icon.png", "web/gin/static/apple-touch-icon.png")
+	router.StaticFile("/favicon-16x16.png", "web/gin/static/favicon-16x16.png")
+	router.StaticFile("/favicon-32x32.png", "web/gin/static/favicon-32x32.png")
+	router.StaticFile("/manifest.json", "web/gin/static/manifest.json")
+	router.StaticFile("/favicon.ico", "web/gin/static/favicon.ico")
 
 	// 配置路由
 	router.GET("/api/auth/session", sessionAPIHandler)
