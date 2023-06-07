@@ -36,7 +36,8 @@ func refreshPostToken(url string, data RefreshData, userAgent string) (*http.Res
 	return rep, nil
 }
 
-func GetTokenByRefreshToken(RefreshToken string, userAgent string) (string, error) {
+func GetTokenByRefreshToken(RefreshToken string) (string, error) {
+	const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 	data := RefreshData{
 		RedirectUri: "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback",
 		GrantType:   "refresh_token",
