@@ -71,42 +71,9 @@ func main() {
 			return
 		}
 	} else if viper.GetString("add-user-file") != "" { // 读取文件添加用户
+		filePath := viper.GetString("add-user-file")
 		// 读取配置文件
-		file, err := os.Open(viper.GetString("add-user-file"))
-		if err != nil {
-			logger.Fatal("os.Open failed", zap.Error(err))
-			return
-		}
-		defer func(file *os.File) {
-			err := file.Close()
-			if err != nil {
-
-			}
-		}(file)
-
-		// 创建一个scanner用于逐行读取配置文件
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			line := scanner.Text()         // 循环读取每一行
-			fields := strings.Fields(line) // 按空格分割每行字段
-			var email, password, refreshToken, notes string
-			if len(fields) == 3 {
-				email = fields[0]
-				password = fields[1]
-				refreshToken = fields[2]
-				notes = ""
-			} else if len(fields) == 4 {
-				email = fields[0]
-				password = fields[1]
-				refreshToken = fields[2]
-				notes = fields[3]
-			}
-			_ = addUser(refreshToken, email, password, notes, sqlite)
-		}
-		if err := scanner.Err(); err != nil {
-			logger.Fatal("scanner.Err failed", zap.Error(err))
-			return
-		}
+		addUserByFile(filePath, sqlite)
 		return
 	} else {
 		cloudParam := web.PandoraParam{
@@ -116,6 +83,46 @@ func main() {
 		}
 		web.ServerStart(server, &cloudParam)
 	}
+}
+
+// addUserByFile 通过文件添加用户
+func addUserByFile(filePath string, sqlite *gorm.DB) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		logger.Fatal("os.Open failed", zap.Error(err))
+		return
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	// 创建一个scanner用于逐行读取配置文件
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()         // 循环读取每一行
+		fields := strings.Fields(line) // 按空格分割每行字段
+		var email, password, refreshToken, notes string
+		if len(fields) == 3 {
+			email = fields[0]
+			password = fields[1]
+			refreshToken = fields[2]
+			notes = ""
+		} else if len(fields) == 4 {
+			email = fields[0]
+			password = fields[1]
+			refreshToken = fields[2]
+			notes = fields[3]
+		}
+		_ = addUser(refreshToken, email, password, notes, sqlite)
+	}
+	if err := scanner.Err(); err != nil {
+		logger.Fatal("scanner.Err failed", zap.Error(err))
+		return
+	}
+	return
 }
 
 // addUser 添加用户
