@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
+	"goPandora/internal/pandora"
 	"goPandora/web"
 	"os"
 )
@@ -65,10 +66,20 @@ func main() {
 		fmt.Print("RefreshToken:")
 		refreshToken, _ := reader.ReadString('\n')
 
+		token, _ := pandora.GetTokenByRefreshToken(refreshToken)
+		payload, err := pandora.CheckAccessToken(token)
+		if err != nil {
+			logger.Error("pandora.CheckAccessToken failed", zap.Error(err))
+			return
+		}
+		exp, _ := payload["exp"].(int64)
+
 		user := &db.User{
 			Email:        email,
 			Password:     password,
+			Token:        token,
 			RefreshToken: refreshToken,
+			ExpiryTime:   exp,
 		}
 		sqlite.Create(&user)
 	} else {

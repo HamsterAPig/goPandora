@@ -16,7 +16,7 @@ type User struct {
 	Email        string
 	Password     string
 	UUID         string `gorm:"unique"`
-	Token        *string
+	Token        string
 	RefreshToken string
 	UpdatedTime  time.Time `gorm:"autoUpdateTime"`
 	ExpiryTime   int64
