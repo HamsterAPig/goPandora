@@ -17,8 +17,6 @@ import (
 )
 
 func main() {
-	// 初始化logger
-	logger.InitLogger("debug")
 
 	// 绑定命令行参数
 	pflag.StringP("server", "s", ":8080", "server address")
@@ -26,6 +24,7 @@ func main() {
 	pflag.StringP("database", "b", "./data.db", "database file path")
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
 	pflag.String("add-user-file", "", "add user file path")
+	pflag.String("debug-level", "info", "debug level")
 	pflag.Bool("add-user", false, "add user")
 	pflag.Bool("list-user", false, "list user")
 	pflag.Parse()
@@ -43,6 +42,8 @@ func main() {
 	gptPre := viper.GetString("CHATGPT_API_PREFIX")
 	dbFilePath := viper.GetString("database")
 
+	// 初始化logger
+	logger.InitLogger(viper.GetString("debug-level"))
 	// 打印结果
 	logger.Debug("server", zap.String("server", server))
 	logger.Debug("proxys", zap.Strings("proxys", proxies))
