@@ -20,6 +20,7 @@ type User struct {
 	RefreshToken string
 	UpdatedTime  time.Time `gorm:"autoUpdateTime"`
 	ExpiryTime   time.Time
+	Comment      string
 }
 
 var db *gorm.DB
