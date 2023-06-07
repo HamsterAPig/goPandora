@@ -13,9 +13,9 @@
     <meta property="og:title" content=""/>
     <meta property="og:image" content="/images/chatgpt-share-og.png"/>
     <meta name="next-head-count" content="11"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"/>
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"/>
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
     <link rel="preconnect" href="{[ .api_prefix|safe ]}"/>
     <link rel="preload" href="/fonts/soehne/soehne-buch.woff2" as="font" crossorigin=""/>
     <link rel="preload" href="/fonts/soehne/soehne-halbfett.woff2" as="font" crossorigin=""/>
@@ -76,7 +76,7 @@
 ]}</script>
 <script>if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/static/service-worker.js', {scope: '/'}).then(function (reg) {
+        navigator.serviceWorker.register('/service-worker.js', {scope: '/'}).then(function (reg) {
             console.log('ServiceWorker registration successful with scope: ', reg.scope);
         }, function (e) {
             console.log('ServiceWorker registration failed: ', e);
