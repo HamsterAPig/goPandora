@@ -80,6 +80,7 @@ func ServerStart(address string, param *PandoraParam) {
 		})
 	})
 	router.POST("/auth/login_token", postTokenHandler)
+	router.POST("/auth/login", postLoginHandler)
 	router.GET("/auth/logout", func(context *gin.Context) {
 		context.SetCookie("access-token", "", -1, "/", "", false, true)
 		context.Redirect(http.StatusMovedPermanently, "/auth/login")
@@ -93,6 +94,16 @@ func ServerStart(address string, param *PandoraParam) {
 	if err != nil {
 		return
 	}
+}
+func postLoginHandler(c *gin.Context) {
+	//userName := c.PostForm("username")
+	//password := c.PostForm("password")
+	//mfaCode := c.PostForm("mfa_code")
+	//nextUrl := c.PostForm("next")
+	//
+	//if userName != "" && password != "" {
+	//
+	//}
 }
 
 // autoLoginHandler 在访问自动登陆页面时自动设置cookie
@@ -110,7 +121,7 @@ func autoLoginHandler(c *gin.Context) {
 		return
 	}
 	if user.ExpiryTime.Before(time.Now()) {
-		c.String(http.StatusOK, "正在自动更新Token，请稍微...")
+		c.String(http.StatusOK, "正在自动更新Token，请稍后...")
 		token, err := pandora.GetTokenByRefreshToken(user.RefreshToken)
 		if err != nil {
 			logger.Fatal("pandora.GetTokenByRefreshToken failed", zap.Error(err))
