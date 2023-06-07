@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
+	"goPandora/internal/db"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
 	"html/template"
@@ -84,6 +85,9 @@ func ServerStart(address string, param *PandoraParam) {
 		context.Redirect(http.StatusMovedPermanently, "/auth/login")
 	})
 
+	// 自动设置cookie以到达访问url自动登陆的页面
+	router.GET("/auth/login_auto/:uuid", autoLoginHandler)
+
 	// 启动服务
 	err := router.Run(address)
 	if err != nil {
@@ -91,6 +95,46 @@ func ServerStart(address string, param *PandoraParam) {
 	}
 }
 
+// autoLoginHandler 在访问自动登陆页面时自动设置cookie
+func autoLoginHandler(c *gin.Context) {
+	uuid := c.Param("uuid")
+	sqlite, _ := db.GetDB()
+
+	var user db.User
+	res := sqlite.Where("uuid = ?", uuid).First(&user)
+	if res.Error != nil {
+		logger.Error("sqlite.Where failed", zap.Error(res.Error))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": res.Error,
+		})
+		return
+	}
+	if user.ExpiryTime.Before(time.Now()) {
+		c.String(http.StatusOK, "正在自动更新Token，请稍微...")
+		token, err := pandora.GetTokenByRefreshToken(user.RefreshToken)
+		if err != nil {
+			logger.Fatal("pandora.GetTokenByRefreshToken failed", zap.Error(err))
+			return
+		}
+		user.Token = token
+	}
+
+	// 设置cookie
+	cookie := &http.Cookie{
+		Name:     "access-token",
+		Value:    user.Token,
+		Expires:  user.ExpiryTime,
+		Path:     "/",
+		Domain:   "",
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(c.Writer, cookie)
+	c.Redirect(http.StatusMovedPermanently, "/")
+}
+
+// userInfoHandler 获取当前用户的信息
 func userInfoHandler(c *gin.Context) {
 	userID, email, _, _, err := getUserInfo(c)
 	if nil != err {
