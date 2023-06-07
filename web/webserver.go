@@ -121,7 +121,7 @@ func autoLoginHandler(c *gin.Context) {
 		return
 	}
 	if user.ExpiryTime.Before(time.Now()) {
-		c.String(http.StatusOK, "正在自动更新Token，请稍后...")
+		c.String(http.StatusFound, "正在自动更新Token，请稍后...")
 		token, err := pandora.GetTokenByRefreshToken(user.RefreshToken)
 		if err != nil {
 			logger.Fatal("pandora.GetTokenByRefreshToken failed", zap.Error(err))
