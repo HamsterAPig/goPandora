@@ -12,6 +12,7 @@ import (
 	"goPandora/web"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -69,14 +70,15 @@ func main() {
 			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
 			return
 		}
-		exp, _ := payload["exp"].(int64)
+		exp, _ := payload["exp"].(float64)
+		expires := time.Unix(int64(exp), 0)
 
 		user := &db.User{
 			Email:        email,
 			Password:     password,
 			Token:        token,
 			RefreshToken: refreshToken,
-			ExpiryTime:   exp,
+			ExpiryTime:   expires,
 		}
 		sqlite.Create(&user)
 	} else {
