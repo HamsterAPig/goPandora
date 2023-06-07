@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
 	"goPandora/web"
+	"os"
 )
 
 func main() {
@@ -18,6 +21,7 @@ func main() {
 	pflag.StringSliceP("proxys", "p", nil, "proxy address")
 	pflag.StringP("database", "b", "./data.db", "database file path")
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
+	pflag.String("add-user", "", "add user")
 	pflag.Parse()
 
 	// 初始化Viperr
@@ -52,10 +56,27 @@ func main() {
 		return
 	}
 
-	cloudParam := web.PandoraParam{
-		ApiPrefix:     gptPre,
-		PandoraSentry: "false",
-		BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
+	if viper.GetString("add-user") != "" {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Email:")
+		email, _ := reader.ReadString('\n')
+		fmt.Print("Password:")
+		password, _ := reader.ReadString('\n')
+		fmt.Print("RefreshToken:")
+		refreshToken, _ := reader.ReadString('\n')
+
+		user := &db.User{
+			Email:        email,
+			Password:     password,
+			RefreshToken: refreshToken,
+		}
+		sqlite.Create(&user)
+	} else {
+		cloudParam := web.PandoraParam{
+			ApiPrefix:     gptPre,
+			PandoraSentry: "false",
+			BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
+		}
+		web.ServerStart(server, &cloudParam)
 	}
-	web.ServerStart(server, &cloudParam)
 }

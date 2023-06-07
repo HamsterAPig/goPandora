@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	logger "goPandora/internal/log"
 	"gorm.io/driver/sqlite"
@@ -12,9 +13,10 @@ import (
 
 type User struct {
 	ID           uint `gorm:"primary_key:autoIncrement"`
-	Email        *string
-	Password     *string
-	Token        string
+	Email        string
+	Password     string
+	UUID         string `gorm:"unique"`
+	Token        *string
 	RefreshToken string
 	UpdatedTime  time.Time `gorm:"autoUpdateTime"`
 	ExpiryTime   int64
@@ -58,4 +60,9 @@ func CloseDB() {
 			return
 		}
 	}
+}
+
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+	u.UUID = uuid.New().String()
+	return nil
 }
