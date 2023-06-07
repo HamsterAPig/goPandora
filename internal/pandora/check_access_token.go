@@ -60,6 +60,7 @@ gQIDAQAB
 	return claims, nil
 }
 
+// CheckUserInfo 解析传入的access token
 func CheckUserInfo(accessToken string) (string, string, string, jwt.MapClaims, error) {
 	payload, err := CheckAccessToken(accessToken)
 	if nil != err {

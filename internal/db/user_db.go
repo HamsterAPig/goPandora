@@ -24,6 +24,7 @@ type User struct {
 
 var db *gorm.DB
 
+// InitSQLite 初始化SQLite
 func InitSQLite(dbFilePath string) error {
 	// 判断数据库文件是否存在
 	_, err := os.Stat(dbFilePath)
@@ -45,6 +46,7 @@ func InitSQLite(dbFilePath string) error {
 	return nil
 }
 
+// GetDB 获取数据库操作指针
 func GetDB() (*gorm.DB, error) {
 	if nil == db {
 		return nil, fmt.Errorf("database connection is not initialized")
@@ -52,6 +54,7 @@ func GetDB() (*gorm.DB, error) {
 	return db, nil
 }
 
+// CloseDB 关闭数据库连接
 func CloseDB() {
 	if nil != db {
 		sqlDB, _ := db.DB()
@@ -62,6 +65,7 @@ func CloseDB() {
 	}
 }
 
+// BeforeCreate 向User表插入数据后自动添加UUID
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	u.UUID = uuid.New().String()
 	return nil

@@ -15,6 +15,7 @@ type RefreshData struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// refreshPostToken 向网页post数据
 func refreshPostToken(url string, data RefreshData, userAgent string) (*http.Response, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -36,6 +37,7 @@ func refreshPostToken(url string, data RefreshData, userAgent string) (*http.Res
 	return rep, nil
 }
 
+// GetTokenByRefreshToken 依据refresh_token获取access_token
 func GetTokenByRefreshToken(RefreshToken string) (string, error) {
 	const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 	data := RefreshData{
