@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -42,6 +43,11 @@ func main() {
 	gptPre := viper.GetString("CHATGPT_API_PREFIX")
 	dbFilePath := viper.GetString("database")
 
+	if viper.GetString("debug-level") == "debug" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	// 初始化logger
 	logger.InitLogger(viper.GetString("debug-level"))
 	// 打印结果
