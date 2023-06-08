@@ -30,16 +30,16 @@ func ServerStart(address string, param *PandoraParam) {
 			return template.HTML(s)
 		},
 		"lower": strings.ToLower,
-		"tojson": func(v interface{}) string {
-			jsonData, err := json.Marshal(v)
+		"tojson": func(v interface{}) template.JS {
+			bytes, err := json.Marshal(v)
 			if err != nil {
 				logger.Error("json.Marshal failed", zap.Error(err))
 				return ""
 			}
-			return string(jsonData)
+			return template.JS(bytes)
 		},
 	})
-	// 加载模板
+	// 加载模板 )
 	router.LoadHTMLGlob("web/gin/templates/*")
 
 	// 加载静态文件
