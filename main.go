@@ -24,10 +24,10 @@ func main() {
 	pflag.StringSliceP("proxys", "p", nil, "proxy address")
 	pflag.StringP("database", "b", "./data.db", "database file path")
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
-	pflag.String("add-user-file", "", "add user file path")
+	pflag.String("user-add-file", "", "add user file path")
 	pflag.String("debug-level", "info", "debug level")
-	pflag.Bool("add-user", false, "add user")
-	pflag.Bool("list-user", false, "list user")
+	pflag.Bool("user-add", false, "add user")
+	pflag.Bool("user-list", false, "list user")
 	pflag.Parse()
 
 	// 初始化Viperr
@@ -69,7 +69,7 @@ func main() {
 		return
 	}
 
-	if viper.GetBool("add-user") { // 添加用户
+	if viper.GetBool("user-add") { // 添加用户
 		email := readerStringByCMD("Email:")
 		password := readerStringByCMD("Password:")
 		refreshToken := readerStringByCMD("RefreshToken:")
@@ -78,12 +78,12 @@ func main() {
 		if addUser(refreshToken, email, password, comment, sqlite) == nil {
 			return
 		}
-	} else if viper.GetString("add-user-file") != "" { // 读取文件添加用户
-		filePath := viper.GetString("add-user-file")
+	} else if viper.GetString("user-add-file") != "" { // 读取文件添加用户
+		filePath := viper.GetString("user-add-file")
 		// 读取配置文件
 		addUserByFile(filePath, sqlite)
 		return
-	} else if viper.GetBool("list-user") {
+	} else if viper.GetBool("user-list") {
 		var users []db.User
 		sqlite.Find(&users)
 		for _, user := range users {
