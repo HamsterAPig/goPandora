@@ -164,9 +164,9 @@ func addUser(refreshToken string, email string, password string, comment string,
 		return res.Error
 	}
 	if res.RowsAffected > 0 {
-		logger.Info("add user success")
+		logger.Info("add user success and uuid is", zap.String("uuid", user.UUID))
 	} else {
-		logger.Info("The record already exists and the insert operation is skipped")
+		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("uuid", user.UUID))
 	}
 	return nil
 }
