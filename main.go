@@ -87,7 +87,7 @@ func main() {
 		var users []db.User
 		sqlite.Find(&users)
 		for _, user := range users {
-			fmt.Printf("Email: %s, UUID: %s\n", user.Email, user.UUID)
+			fmt.Printf("Email: %s, UUID: %s, Comment: %s\n", user.Email, user.UUID, user.Comment)
 		}
 	} else {
 		cloudParam := web.PandoraParam{
