@@ -51,7 +51,7 @@ func ServerStart(address string, param *PandoraParam) {
 	router.StaticFile("/favicon-16x16.png", "web/gin/static/favicon-16x16.png")
 	router.StaticFile("/favicon-32x32.png", "web/gin/static/favicon-32x32.png")
 	router.StaticFile("/manifest.json", "web/gin/static/manifest.json")
-	router.StaticFile("/favicon.ico", "web/gin/static/favicon.ico")
+	router.StaticFile("/favicon.ico", "web/gin/static/favicon-16x16.png")
 
 	// 配置路由
 	router.GET("/api/auth/session", sessionAPIHandler)
@@ -261,7 +261,7 @@ func sessionAPIHandler(c *gin.Context) {
 			"error": "invalid token because exp is not float64",
 		})
 	}
-	expTimestamp := time.Unix(int64(exp), 0).Format("2006-01-02 15:04:05")
+	expTimestamp := time.Unix(int64(exp), 0).Format("2006-01-02T15:04:05")
 
 	// 构造返回json
 	ret := &gin.H{
@@ -313,7 +313,7 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 			"__N_SSP": true,
 		},
 		"page":         "/",
-		"query":        "{}",
+		"query":        gin.H{},
 		"buildId":      param.BuildId,
 		"isFallback":   false,
 		"gssp":         true,

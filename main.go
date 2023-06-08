@@ -25,6 +25,7 @@ func main() {
 	pflag.StringP("database", "b", "./data.db", "database file path")
 	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
 	pflag.String("user-add-file", "", "add user file path")
+	pflag.String("web-user-list", "", "user list file path")
 	pflag.String("debug-level", "info", "debug level")
 	pflag.Bool("user-add", false, "add user")
 	pflag.Bool("user-list", false, "list user")
