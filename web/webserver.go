@@ -89,6 +89,16 @@ func ServerStart(address string, param *PandoraParam) {
 	// 自动设置cookie以到达访问url自动登陆的页面
 	router.GET("/auth/login_auto/:uuid", autoLoginHandler)
 
+	// 根据会话ID选择模板
+	router.GET("/404.html", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "404.html", gin.H{
+			"api_prefix":     param.ApiPrefix,
+			"build_id":       param.BuildId,
+			"pandora_sentry": param.PandoraSentry,
+			"props":          "",
+		})
+	})
+
 	// 启动服务
 	err := router.Run(address)
 	if err != nil {
