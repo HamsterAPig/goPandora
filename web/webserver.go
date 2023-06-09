@@ -107,14 +107,47 @@ func ServerStart(address string, param *PandoraParam) {
 	}
 }
 func postLoginHandler(c *gin.Context) {
-	//userName := c.PostForm("username")
-	//password := c.PostForm("password")
+	userName := c.PostForm("username")
+	password := c.PostForm("password")
 	//mfaCode := c.PostForm("mfa_code")
-	//nextUrl := c.PostForm("next")
-	//
-	//if userName != "" && password != "" {
-	//
-	//}
+	nextUrl := c.PostForm("next")
+
+	if userName != "" && password != "" {
+		accessToken, _, err := pandora.Auth0(userName, password, "", "")
+		if err != nil {
+			c.HTML(http.StatusOK, "login.html", gin.H{
+				"username": userName,
+				"error":    err.Error(),
+			})
+		}
+		payload, err := pandora.CheckAccessToken(accessToken)
+		if err != nil {
+			c.HTML(http.StatusOK, "login.html", gin.H{
+				"username": userName,
+				"error":    err.Error(),
+			})
+		}
+		// 检查token的过期时间
+		exp, _ := payload["exp"].(float64)
+		expires := time.Unix(int64(exp), 0)
+
+		// 设置cookie
+		cookie := &http.Cookie{
+			Name:     "access-token",
+			Value:    accessToken,
+			Expires:  expires,
+			Path:     "/",
+			Domain:   "",
+			Secure:   false,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		}
+		http.SetCookie(c.Writer, cookie)
+		if nextUrl == "" {
+			nextUrl = "/"
+		}
+		c.Redirect(http.StatusMovedPermanently, nextUrl)
+	}
 }
 
 // autoLoginHandler 在访问自动登陆页面时自动设置cookie
