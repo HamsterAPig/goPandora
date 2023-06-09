@@ -21,7 +21,9 @@ type PandoraParam struct {
 	BuildId       string
 }
 
-func ServerStart(address string, param *PandoraParam) {
+var Param PandoraParam
+
+func ServerStart(address string) {
 	router := gin.Default()
 	router.Delims("{[", "]}")
 	// 注册自定义模板函数
@@ -57,18 +59,12 @@ func ServerStart(address string, param *PandoraParam) {
 	// 配置路由
 	router.GET("/api/auth/session", sessionAPIHandler)
 	router.GET("/api/accounts/check/v4-2023-04-27", checkAPIHandler)
-	router.GET(fmt.Sprintf("/_next/data/%s/index.json", param.BuildId), userInfoHandler)
-	router.GET(fmt.Sprintf("/_next/data/%s/c/:conversationID", param.BuildId), userInfoHandler)
+	router.GET(fmt.Sprintf("/_next/data/%s/index.json", Param.BuildId), userInfoHandler)
+	router.GET(fmt.Sprintf("/_next/data/%s/c/:conversationID", Param.BuildId), userInfoHandler)
 
-	router.GET("/", func(c *gin.Context) {
-		chatHandler(c, param, "")
-	})
-	router.GET("/c", func(c *gin.Context) {
-		chatHandler(c, param, "")
-	})
-	router.GET("/c/:chatID", func(c *gin.Context) {
-		chatHandler(c, param, c.Param("chatID"))
-	})
+	router.GET("/", chatHandler)
+	router.GET("/c", chatHandler)
+	router.GET("/c/:chatID", chatHandler)
 
 	router.GET("/login", func(context *gin.Context) {
 		context.Redirect(http.StatusMovedPermanently, "/auth/login")
@@ -76,7 +72,7 @@ func ServerStart(address string, param *PandoraParam) {
 	router.GET("/auth/login", func(context *gin.Context) {
 		next := context.Query("next")
 		context.HTML(http.StatusOK, "login.html", gin.H{
-			"api_prefix": param.ApiPrefix,
+			"api_prefix": Param.ApiPrefix,
 			"next":       next,
 		})
 	})
@@ -93,9 +89,9 @@ func ServerStart(address string, param *PandoraParam) {
 	// 根据会话ID选择模板
 	router.GET("/404.html", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "404.html", gin.H{
-			"api_prefix":     param.ApiPrefix,
-			"build_id":       param.BuildId,
-			"pandora_sentry": param.PandoraSentry,
+			"api_prefix":     Param.ApiPrefix,
+			"build_id":       Param.BuildId,
+			"pandora_sentry": Param.PandoraSentry,
 			"props":          "",
 		})
 	})
@@ -106,6 +102,8 @@ func ServerStart(address string, param *PandoraParam) {
 		return
 	}
 }
+
+// postLoginHandler 官方账号密码登陆
 func postLoginHandler(c *gin.Context) {
 	userName := c.PostForm("username")
 	password := c.PostForm("password")
@@ -265,7 +263,7 @@ func checkAPIHandler(c *gin.Context) {
 					"browsing_inner_monologue",
 					"browsing_bing_branding",
 					"shareable_links",
-					"plugin_display_params",
+					"plugin_display_Params",
 					"tools3_dev",
 					"tools2",
 					"debug",
@@ -325,7 +323,8 @@ func sessionAPIHandler(c *gin.Context) {
 }
 
 // chatHandler 主入口函数
-func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
+func chatHandler(ctx *gin.Context) {
+	conversationID := ctx.Param("chatID")
 	// 解析、验证token
 	userID, email, _, _, err := getUserInfo(ctx)
 	if err != nil { // 如果验证的token出现错误则跳转到/login
@@ -358,7 +357,7 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 		},
 		"page":         "/",
 		"query":        gin.H{},
-		"buildId":      param.BuildId,
+		"buildId":      Param.BuildId,
 		"isFallback":   false,
 		"gssp":         true,
 		"scriptLoader": []interface{}{},
@@ -374,8 +373,8 @@ func chatHandler(ctx *gin.Context, param *PandoraParam, conversationID string) {
 
 	// 返回渲染好的模板
 	ctx.HTML(http.StatusOK, templateHtml, gin.H{
-		"pandora_sentry": param.PandoraSentry,
-		"api_prefix":     param.ApiPrefix,
+		"pandora_sentry": Param.PandoraSentry,
+		"api_prefix":     Param.ApiPrefix,
 		"props":          props,
 	})
 }

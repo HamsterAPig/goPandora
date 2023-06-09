@@ -91,12 +91,12 @@ func main() {
 			fmt.Printf("Email: %s, UUID: %s, Comment: %s\n", user.Email, user.UUID, user.Comment)
 		}
 	} else {
-		cloudParam := web.PandoraParam{
+		web.Param = web.PandoraParam{
 			ApiPrefix:     gptPre,
 			PandoraSentry: "false",
 			BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
 		}
-		web.ServerStart(server, &cloudParam)
+		web.ServerStart(server)
 	}
 }
 
