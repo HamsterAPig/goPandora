@@ -112,6 +112,16 @@ func shareDetailHandler(c *gin.Context) {
 	//	c.Redirect(http.StatusForbidden, "/auth/login?next=%2Fshare%2F"+c.Param("shareID"))
 	//	return
 	//}
+	props := shareDetailJson(c)
+	c.HTML(http.StatusOK, "share.html", gin.H{
+		"props":          props,
+		"pandora_sentry": Param.PandoraSentry,
+		"api_prefix":     Param.ApiPrefix,
+	})
+}
+
+// shareDetailJson 返回反序列化之后的分享详情
+func shareDetailJson(c *gin.Context) gin.H {
 	shareDetail, err := fetchShareDetail(c.Param("shareID"))
 	if err != nil {
 		error404(c)
@@ -143,13 +153,10 @@ func shareDetailHandler(c *gin.Context) {
 		"gssp":         true,
 		"scriptLoader": []string{},
 	}
-	c.HTML(http.StatusOK, "share.html", gin.H{
-		"props":          props,
-		"pandora_sentry": Param.PandoraSentry,
-		"api_prefix":     Param.ApiPrefix,
-	})
+	return props
 }
 
+// fetchShareDetail 从源服务器处抓取share info
 func fetchShareDetail(shareID string) (retJson map[string]interface{}, err error) {
 	url1 := Param.ApiPrefix + "/api/share/" + shareID
 	resp, err := http.Get(url1)
