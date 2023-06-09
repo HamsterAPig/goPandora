@@ -62,6 +62,7 @@ func ServerStart(address string) {
 	router.GET("/api/accounts/check/v4-2023-04-27", checkAPIHandler)
 	router.GET(fmt.Sprintf("/_next/data/%s/index.json", Param.BuildId), userInfoHandler)
 	router.GET(fmt.Sprintf("/_next/data/%s/c/:conversationID", Param.BuildId), userInfoHandler)
+	router.GET(fmt.Sprintf("/_next/data/%s/share/:shareID", Param.BuildId), shareInfoHandler)
 
 	router.GET("/", chatHandler)
 	router.GET("/c", chatHandler)
@@ -106,6 +107,13 @@ func ServerStart(address string) {
 	}
 }
 
+// shareInfoHandler 以JSON的格式返回分享页详情
+func shareInfoHandler(c *gin.Context) {
+	props := shareDetailJson(c)
+	c.JSON(http.StatusOK, props)
+}
+
+// shareDetailHandler 显示分享详情页
 func shareDetailHandler(c *gin.Context) {
 	//_, _, _, _, err := getUserInfo(c)
 	//if err != nil {
@@ -122,7 +130,11 @@ func shareDetailHandler(c *gin.Context) {
 
 // shareDetailJson 返回反序列化之后的分享详情
 func shareDetailJson(c *gin.Context) gin.H {
-	shareDetail, err := fetchShareDetail(c.Param("shareID"))
+	shareID := c.Param("shareID")
+	if strings.HasSuffix(shareID, ".json") {
+		shareID = strings.TrimSuffix(shareID, ".json")
+	}
+	shareDetail, err := fetchShareDetail(shareID)
 	if err != nil {
 		error404(c)
 	}
