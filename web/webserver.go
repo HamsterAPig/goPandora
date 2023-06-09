@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -63,6 +64,7 @@ func ServerStart(address string) {
 	router.GET(fmt.Sprintf("/_next/data/%s/index.json", Param.BuildId), userInfoHandler)
 	router.GET(fmt.Sprintf("/_next/data/%s/c/:conversationID", Param.BuildId), userInfoHandler)
 	router.GET(fmt.Sprintf("/_next/data/%s/share/:shareID", Param.BuildId), shareInfoHandler)
+	router.GET(fmt.Sprintf("/_next/data/%s/share/:shareID/continue.json", Param.BuildId), shareContinueHandler)
 
 	router.GET("/", chatHandler)
 	router.GET("/c", chatHandler)
@@ -105,6 +107,78 @@ func ServerStart(address string) {
 	if err != nil {
 		return
 	}
+}
+
+func shareContinueHandler(c *gin.Context) {
+	// 检查是否登陆，未登录则返回登陆Url
+	userID, email, _, _, err := getUserInfo(c)
+	if err != nil {
+		nextURL := fmt.Sprintf("/share/%s/continue", url.PathEscape(c.Param("shareID")))
+		loginURL := fmt.Sprintf("/auth/login?next=%s", url.PathEscape(nextURL))
+		c.JSON(http.StatusForbidden, gin.H{
+			"pageProps": gin.H{
+				"__N_REDIRECT":        loginURL,
+				"__N_REDIRECT_STATUS": true,
+			},
+			"__N_SSP": true,
+		})
+	}
+	shareID := c.Param("shareID")
+	shareDetail, err := fetchShareDetail(shareID)
+	if err != nil {
+		error404(c)
+	}
+	_, exists := shareDetail["continue_conversation_url"]
+	if exists {
+		shareDetail["continue_conversation_url"] = strings.Replace(shareDetail["continue_conversation_url"].(string), "https://chat.openai.com", "", 1)
+	}
+	props := gin.H{
+		"pageProps": gin.H{
+			"user": gin.H{
+				"id":      userID,
+				"name":    email,
+				"email":   email,
+				"image":   nil,
+				"picture": nil,
+				"groups":  []string{},
+			},
+			"serviceStatus": gin.H{},
+			"userCountry":   "US",
+			"geoOk":         true,
+			"serviceAnnouncement": gin.H{
+				"paid":   gin.H{},
+				"public": gin.H{},
+			},
+			"isUserInCanPayGroup":  true,
+			"sharedConversationId": shareID,
+			"serverResponse": gin.H{
+				"type": "data",
+				"data": shareDetail,
+			},
+			"continueMode":   true,
+			"moderationMode": false,
+			"chatPageProps": gin.H{
+				"user": gin.H{
+					"id":      userID,
+					"name":    email,
+					"email":   email,
+					"image":   nil,
+					"picture": nil,
+					"groups":  []string{},
+				},
+				"serviceStatus": gin.H{},
+				"userCountry":   "US",
+				"geoOk":         true,
+				"serviceAnnouncement": gin.H{
+					"paid":   gin.H{},
+					"public": gin.H{},
+				},
+				"isUserInCanPayGroup": true,
+			},
+		},
+		"__N_SSP": true,
+	}
+	c.JSON(http.StatusOK, props)
 }
 
 // shareInfoHandler 以JSON的格式返回分享页详情
