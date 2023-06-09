@@ -185,6 +185,9 @@ func GetTokenAndRefreshTokenByCode(code string, codeVerifier string) (string, st
 	jsonStr := string(body)
 	var data map[string]interface{}
 	err = json.Unmarshal([]byte(jsonStr), &data)
+	if err != nil {
+		return "", "", fmt.Errorf("json unmarshal error: %s", err)
+	}
 	return data["access_token"].(string), data["refresh_token"].(string), nil
 }
 

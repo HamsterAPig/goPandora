@@ -10,6 +10,7 @@ import (
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
 	"html/template"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -96,11 +97,92 @@ func ServerStart(address string) {
 		})
 	})
 
+	router.GET("/share/:shareID", shareDetailHandler)
+
 	// 启动服务
 	err := router.Run(address)
 	if err != nil {
 		return
 	}
+}
+
+func shareDetailHandler(c *gin.Context) {
+	//_, _, _, _, err := getUserInfo(c)
+	//if err != nil {
+	//	c.Redirect(http.StatusForbidden, "/auth/login?next=%2Fshare%2F"+c.Param("shareID"))
+	//	return
+	//}
+	shareDetail, err := fetchShareDetail(c.Param("shareID"))
+	if err != nil {
+		props := gin.H{
+			"props": gin.H{
+				"pageProps": gin.H{"statusCode": 404},
+			},
+			"page":         "/_error",
+			"query":        gin.H{},
+			"buildId":      Param.BuildId,
+			"nextExport":   true,
+			"isFallback":   false,
+			"gip":          true,
+			"scriptLoader": "[]",
+		}
+		c.HTML(http.StatusNotFound, "404.html", gin.H{
+			"props":          props,
+			"pandora_sentry": Param.PandoraSentry,
+			"api_prefix":     Param.ApiPrefix,
+		})
+	}
+	_, exists := shareDetail["continue_conversation_url"]
+	if exists {
+		shareDetail["continue_conversation_url"] = strings.Replace(shareDetail["continue_conversation_url"].(string), "https://chat.openai.com", "", 1)
+	}
+	props := gin.H{
+		"props": gin.H{
+			"pageProps": gin.H{
+				"sharedConversationId": c.Param("shareID"),
+				"serverResponse": gin.H{
+					"type": "data",
+					"data": shareDetail,
+				},
+				"continueMode":   false,
+				"moderationMode": false,
+				"chatPageProps":  gin.H{},
+			},
+			"__N_SSP": true,
+		},
+		"page": "/share/[[...shareParams]]",
+		"query": gin.H{
+			"shareParams": []string{c.Param("shareID")},
+		},
+		"buildId":      Param.BuildId,
+		"isFallback":   false,
+		"gssp":         true,
+		"scriptLoader": []string{},
+	}
+	c.HTML(http.StatusOK, "share.html", gin.H{
+		"props":          props,
+		"pandora_sentry": Param.PandoraSentry,
+		"api_prefix":     Param.ApiPrefix,
+	})
+}
+
+func fetchShareDetail(shareID string) (retJson map[string]interface{}, err error) {
+	url1 := Param.ApiPrefix + "/api/share/" + shareID
+	resp, err := http.Get(url1)
+	if err != nil {
+		return
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read body error: %s", err)
+	}
+	jsonStr := string(body)
+	var data map[string]interface{}
+	err = json.Unmarshal([]byte(jsonStr), &data)
+	if err != nil {
+		return nil, fmt.Errorf("json unmarshal error: %s", err)
+	}
+	return data, nil
 }
 
 // postLoginHandler 官方账号密码登陆
