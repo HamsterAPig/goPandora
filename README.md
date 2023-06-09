@@ -48,3 +48,14 @@ Pandora项目地址：https://github.com/pengzhile/pandora
         }
 ```
 
+## 拼接自动登陆链接
+
+使用`--user-list`这个命令选项只会输出用户的`uuid`、`邮箱`、`备注`
+
+还需要自己手动拼接自动登陆链接，目前相关功能还未完善，这里提供一个Linux中Shell中`awk`命令的方式自动拼接，假设你的域名是`http://127.0.0.1`则
+
+```shell
+./goPandora --user-list | awk -F' ' '{ printf "http://127.0.0.1/auth/login_auto/%s %s %s\n", $4, $2, $6 }'
+
+```
+
