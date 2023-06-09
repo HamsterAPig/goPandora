@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	logger "goPandora/internal/log"
-	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -104,6 +103,7 @@ func Auth0(userName string, password string, mfaCode string, proxy string) (stri
 	req3.Header.Set("User-Agent", userAgent)
 	req3.Header.Set("Origin", "https://auth0.openai.com")
 	req3.Header.Set("Referer", url3)
+	req3.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp3, err := client.Do(req3)
 	if err != nil {
@@ -111,8 +111,7 @@ func Auth0(userName string, password string, mfaCode string, proxy string) (stri
 	}
 	defer resp3.Body.Close()
 	if resp3.StatusCode != http.StatusFound {
-		body, _ := io.ReadAll(resp3.Body)
-		return string(body), fmt.Errorf("request_3 Error")
+		return "", fmt.Errorf("request_3 Error")
 	}
 	location = resp3.Header.Get("Location")
 	parsedURL, err = url.Parse(location)
