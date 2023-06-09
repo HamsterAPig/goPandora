@@ -114,23 +114,7 @@ func shareDetailHandler(c *gin.Context) {
 	//}
 	shareDetail, err := fetchShareDetail(c.Param("shareID"))
 	if err != nil {
-		props := gin.H{
-			"props": gin.H{
-				"pageProps": gin.H{"statusCode": 404},
-			},
-			"page":         "/_error",
-			"query":        gin.H{},
-			"buildId":      Param.BuildId,
-			"nextExport":   true,
-			"isFallback":   false,
-			"gip":          true,
-			"scriptLoader": "[]",
-		}
-		c.HTML(http.StatusNotFound, "404.html", gin.H{
-			"props":          props,
-			"pandora_sentry": Param.PandoraSentry,
-			"api_prefix":     Param.ApiPrefix,
-		})
+		error404(c)
 	}
 	_, exists := shareDetail["continue_conversation_url"]
 	if exists {
@@ -510,4 +494,24 @@ func getUserInfo(c *gin.Context) (string, string, string, jwt.MapClaims, error) 
 		return "", "", "", nil, err
 	}
 	return pandora.CheckUserInfo(accessToken)
+}
+
+func error404(c *gin.Context) {
+	props := gin.H{
+		"props": gin.H{
+			"pageProps": gin.H{"statusCode": 404},
+		},
+		"page":         "/_error",
+		"query":        gin.H{},
+		"buildId":      Param.BuildId,
+		"nextExport":   true,
+		"isFallback":   false,
+		"gip":          true,
+		"scriptLoader": "[]",
+	}
+	c.HTML(http.StatusNotFound, "404.html", gin.H{
+		"props":          props,
+		"pandora_sentry": Param.PandoraSentry,
+		"api_prefix":     Param.ApiPrefix,
+	})
 }
