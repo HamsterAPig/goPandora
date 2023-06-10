@@ -193,7 +193,7 @@ func shareDetailHandler(c *gin.Context) {
 	if Param.EnableSharePageVerify {
 		_, _, _, _, err := getUserInfo(c)
 		if err != nil {
-			c.Redirect(http.StatusMovedPermanently, "/auth/login?next=%2Fshare%2F"+c.Param("shareID"))
+			c.Redirect(http.StatusFound, "/auth/login?next=%2Fshare%2F"+c.Param("shareID"))
 			return
 		}
 	}
@@ -577,6 +577,7 @@ func postTokenHandler(c *gin.Context) {
 		}
 		http.SetCookie(c.Writer, cookie)
 		c.JSON(http.StatusOK, data)
+		c.Redirect(http.StatusFound, next)
 	} else { // 错误的access-token处理
 		data := gin.H{"code": 1, "msg": "access token is null"}
 		c.JSON(http.StatusInternalServerError, data)
