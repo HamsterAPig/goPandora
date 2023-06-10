@@ -29,6 +29,7 @@ func main() {
 	pflag.String("debug-level", "info", "debug level")
 	pflag.Bool("user-add", false, "add user")
 	pflag.Bool("user-list", false, "list user")
+	pflag.Bool("enable_share_page_verify", true, "enable share page verify")
 	pflag.Parse()
 
 	// 初始化Viperr
@@ -44,11 +45,13 @@ func main() {
 	gptPre := viper.GetString("CHATGPT_API_PREFIX")
 	dbFilePath := viper.GetString("database")
 
+	// 设置gin日志等级
 	if viper.GetString("debug-level") == "debug" {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
 	// 初始化logger
 	logger.InitLogger(viper.GetString("debug-level"))
 	// 打印结果
@@ -96,6 +99,8 @@ func main() {
 			PandoraSentry: "false",
 			BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
 		}
+		// 设置是否启用分享页查看验证
+		web.Param.EnableSharePageVerify = viper.GetBool("enable_share_page_verify")
 		web.ServerStart(server)
 	}
 }

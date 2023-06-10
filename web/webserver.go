@@ -18,9 +18,10 @@ import (
 )
 
 type PandoraParam struct {
-	ApiPrefix     string
-	PandoraSentry string
-	BuildId       string
+	ApiPrefix             string
+	PandoraSentry         string
+	BuildId               string
+	EnableSharePageVerify bool
 }
 
 var Param PandoraParam
@@ -189,11 +190,13 @@ func shareInfoHandler(c *gin.Context) {
 
 // shareDetailHandler 显示分享详情页
 func shareDetailHandler(c *gin.Context) {
-	//_, _, _, _, err := getUserInfo(c)
-	//if err != nil {
-	//	c.Redirect(http.StatusForbidden, "/auth/login?next=%2Fshare%2F"+c.Param("shareID"))
-	//	return
-	//}
+	if Param.EnableSharePageVerify {
+		_, _, _, _, err := getUserInfo(c)
+		if err != nil {
+			c.Redirect(http.StatusMovedPermanently, "/auth/login?next=%2Fshare%2F"+c.Param("shareID"))
+			return
+		}
+	}
 	props := shareDetailJson(c)
 	c.HTML(http.StatusOK, "share.html", gin.H{
 		"props":          props,
