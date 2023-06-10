@@ -323,7 +323,7 @@ func autoLoginHandler(c *gin.Context) {
 	if res.Error != nil {
 		logger.Error("sqlite.Where failed", zap.Error(res.Error))
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": res.Error,
+			"error": res.Error.Error(),
 		})
 		return
 	}
