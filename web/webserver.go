@@ -19,7 +19,7 @@ import (
 
 type PandoraParam struct {
 	ApiPrefix             string
-	PandoraSentry         string
+	PandoraSentry         bool
 	BuildId               string
 	EnableSharePageVerify bool
 }
@@ -34,7 +34,14 @@ func ServerStart(address string) {
 		"safe": func(s string) template.HTML {
 			return template.HTML(s)
 		},
-		"lower": strings.ToLower,
+		"lower": func(value interface{}) interface{} {
+			switch v := value.(type) {
+			case string:
+				return strings.ToLower(v)
+			default:
+				return v
+			}
+		},
 		"tojson": func(v interface{}) template.JS {
 			bytes, err := json.Marshal(v)
 			if err != nil {
@@ -44,7 +51,8 @@ func ServerStart(address string) {
 			return template.JS(bytes)
 		},
 	})
-	// 加载模板 )
+
+	// 加载模板
 	router.LoadHTMLGlob("web/gin/templates/*")
 
 	// 加载静态文件

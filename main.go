@@ -96,7 +96,7 @@ func main() {
 	} else {
 		web.Param = web.PandoraParam{
 			ApiPrefix:     gptPre,
-			PandoraSentry: "false",
+			PandoraSentry: false,
 			BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
 		}
 		// 设置是否启用分享页查看验证
