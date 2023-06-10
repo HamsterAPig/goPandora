@@ -102,6 +102,9 @@ func ServerStart(address string) {
 	})
 
 	router.GET("/share/:shareID", shareDetailHandler)
+	router.GET("/share/:shareID/continue", func(context *gin.Context) {
+		context.Redirect(http.StatusPermanentRedirect, url.PathEscape(context.Param("/share/"+"shareID")))
+	})
 
 	// 启动服务
 	err := router.Run(address)
