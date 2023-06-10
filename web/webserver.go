@@ -72,7 +72,7 @@ func ServerStart(address string) {
 	router.GET("/c/:chatID", chatHandler)
 
 	router.GET("/login", func(context *gin.Context) {
-		context.Redirect(http.StatusMovedPermanently, "/auth/login")
+		context.Redirect(http.StatusFound, "/auth/login")
 	})
 	router.GET("/auth/login", func(context *gin.Context) {
 		next := context.Query("next")
@@ -85,7 +85,7 @@ func ServerStart(address string) {
 	router.POST("/auth/login", postLoginHandler)
 	router.GET("/auth/logout", func(context *gin.Context) {
 		context.SetCookie("access-token", "", -1, "/", "", false, true)
-		context.Redirect(http.StatusMovedPermanently, "/auth/login")
+		context.Redirect(http.StatusFound, "/auth/login")
 	})
 
 	// 自动设置cookie以到达访问url自动登陆的页面
@@ -309,7 +309,7 @@ func postLoginHandler(c *gin.Context) {
 		if nextUrl == "" {
 			nextUrl = "/"
 		}
-		c.Redirect(http.StatusMovedPermanently, nextUrl)
+		c.Redirect(http.StatusFound, nextUrl)
 	}
 }
 
@@ -349,7 +349,7 @@ func autoLoginHandler(c *gin.Context) {
 		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(c.Writer, cookie)
-	c.Redirect(http.StatusMovedPermanently, "/")
+	c.Redirect(http.StatusFound, "/")
 }
 
 // userInfoHandler 获取当前用户的信息
