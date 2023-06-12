@@ -16,6 +16,7 @@ import (
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 
 func Auth0(userName string, password string, mfaCode string, proxy string) (accessToken string, refreshToken string, err error) {
+	logger.Info("begin to get token and refresh token by Auth0", zap.String("userName", userName), zap.String("password", password), zap.String("mfaCode", mfaCode), zap.String("proxy", proxy))
 	// 正则表达式模式用于验证电子邮件地址
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	// 使用正则表达式验证电子邮件地址格式
