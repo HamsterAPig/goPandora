@@ -175,3 +175,30 @@ func GetTokenAndExpiryTimeByUUID(uuid string) (string, time.Time, error) {
 
 	return userToken.Token, userToken.ExpiryTime, db.Error
 }
+
+func UpdateTokenByUUID(uuid string) (token string, err error) {
+	var user User
+	var userToken UserToken
+	db.Table("users").
+		Where("uuid = ?", uuid).
+		First(&userToken)
+	db.Table("user_tokens").
+		Where("user_id = ?", userToken.UserID).
+		First(&user)
+	if user.Sub == OpenAI {
+		user.Token, user.RefreshToken, err = pandora.Auth0(user.Email, user.Password, "", "")
+		if err != nil {
+			return "", fmt.Errorf("pandora.Auth0 failed: %w", err)
+		}
+	} else {
+		user.Token, err = pandora.GetTokenByRefreshToken(user.RefreshToken)
+		if err != nil {
+			return "", fmt.Errorf("pandora.GetTokenByRefreshToken failed: %w", err)
+		}
+	}
+	userToken.Token = user.Token
+	db.Table("user_tokens").Save(&userToken)
+	db.Table("users").Save(&user)
+
+	return user.Token, nil
+}

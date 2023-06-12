@@ -324,32 +324,28 @@ func postLoginHandler(c *gin.Context) {
 // autoLoginHandler 在访问自动登陆页面时自动设置cookie
 func autoLoginHandler(c *gin.Context) {
 	uuid := c.Param("uuid")
-	sqlite, _ := db.GetDB()
-
-	var user db.User
-	res := sqlite.Where("uuid = ?", uuid).First(&user)
-	if res.Error != nil {
-		logger.Error("sqlite.Where failed", zap.Error(res.Error))
+	Token, ExpiryTime, err := db.GetTokenAndExpiryTimeByUUID(uuid)
+	if err != nil {
+		logger.Error("db.GetTokenAndExpiryTimeByUUID failed", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": res.Error.Error(),
+			"error": err.Error(),
 		})
-		return
 	}
-	if user.ExpiryTime.Before(time.Now()) {
+	if ExpiryTime.Before(time.Now()) {
 		c.String(http.StatusFound, "正在自动更新Token，请稍后...")
-		token, err := pandora.GetTokenByRefreshToken(user.RefreshToken)
+		token, err := db.UpdateTokenByUUID(uuid)
 		if err != nil {
-			logger.Fatal("pandora.GetTokenByRefreshToken failed", zap.Error(err))
+			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
 			return
 		}
-		user.Token = token
+		Token = token
 	}
 
 	// 设置cookie
 	cookie := &http.Cookie{
 		Name:     "access-token",
-		Value:    user.Token,
-		Expires:  user.ExpiryTime,
+		Value:    Token,
+		Expires:  ExpiryTime,
 		Path:     "/",
 		Domain:   "",
 		Secure:   false,
