@@ -33,9 +33,10 @@ type User struct {
 }
 
 type UserToken struct {
-	UUID   uuid.UUID `gorm:"primaryKey;type:char(36);not null;unique"`
-	UserID string
-	Token  string
+	UUID    uuid.UUID `gorm:"primaryKey;type:char(36);not null;unique"`
+	UserID  string
+	Token   string
+	Comment string
 }
 
 var db *gorm.DB
