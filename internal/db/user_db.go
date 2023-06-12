@@ -167,24 +167,26 @@ func GetTokenAndExpiryTimeByUUID(uuid string) (string, time.Time, error) {
 		ExpiryTime time.Time
 	}
 
-	db.Table("user_tokens").
+	result := db.Table("user_tokens").
 		Select("user_tokens.token, users.expiry_time").
 		Joins("JOIN users ON user_tokens.user_id = users.user_id").
 		Where("user_tokens.uuid = ?", uuid).
 		First(&userToken)
 
-	return userToken.Token, userToken.ExpiryTime, db.Error
+	err := db.Error
+	if result.RowsAffected == 0 {
+		return "", userToken.ExpiryTime, fmt.Errorf("RecordNotFound")
+	}
+	return userToken.Token, userToken.ExpiryTime, err
 }
 
 // UpdateTokenByUUID 通过UUID更新token
 func UpdateTokenByUUID(uuid string) (token string, err error) {
 	var user User
 	var userToken UserToken
-	db.Table("users").
-		Where("uuid = ?", uuid).
+	db.Where("uuid = ?", uuid).
 		First(&userToken)
-	db.Table("user_tokens").
-		Where("user_id = ?", userToken.UserID).
+	db.Where("user_id = ?", userToken.UserID).
 		First(&user)
 	if user.Sub == OpenAI {
 		user.Token, user.RefreshToken, err = pandora.Auth0(user.Email, user.Password, "", "")
@@ -198,6 +200,9 @@ func UpdateTokenByUUID(uuid string) (token string, err error) {
 		}
 	}
 	userToken.Token = user.Token
+	if user.Token == "" {
+		return "", fmt.Errorf("token is empty")
+	}
 	db.Table("user_tokens").Save(&userToken)
 	db.Table("users").Save(&user)
 
