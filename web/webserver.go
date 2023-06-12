@@ -341,7 +341,6 @@ func autoLoginHandler(c *gin.Context) {
 			return
 		}
 		c.String(http.StatusOK, "\n更新Token成功")
-		c.Redirect(http.StatusFound, "/auth/login_auto/"+uuid)
 	}
 
 	// 设置cookie

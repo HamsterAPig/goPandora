@@ -200,6 +200,13 @@ func UpdateTokenByUUID(uuid string) (token string, err error) {
 		}
 	}
 	userToken.Token = user.Token
+	payload, err := pandora.CheckAccessToken(user.Token)
+	if err != nil {
+		return "", fmt.Errorf("pandora.CheckAccessToken failed: %w", err)
+	}
+	exp, _ := payload["exp"].(float64)
+	expires := time.Unix(int64(exp), 0)
+	user.ExpiryTime = expires
 	if user.Token == "" {
 		return "", fmt.Errorf("token is empty")
 	}
