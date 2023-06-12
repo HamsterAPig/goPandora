@@ -67,7 +67,7 @@ func main() {
 	}
 	defer db.CloseDB()
 	sqlite, _ := db.GetDB()
-	err = sqlite.AutoMigrate(&db.User{})
+	err = sqlite.AutoMigrate(&db.User{}, &db.UserToken{})
 	if err != nil {
 		logger.Error("sqlite.AutoMigrate failed", zap.Error(err))
 		return
@@ -88,11 +88,6 @@ func main() {
 		addUserByFile(filePath, sqlite)
 		return
 	} else if viper.GetBool("user-list") {
-		var users []db.User
-		sqlite.Find(&users)
-		for _, user := range users {
-			fmt.Printf("Email: %s, UUID: %s, Comment: %s\n", user.Email, user.UUID, user.Comment)
-		}
 	} else {
 		web.Param = web.PandoraParam{
 			ApiPrefix:     gptPre,
@@ -155,26 +150,49 @@ func addUser(refreshToken string, email string, password string, comment string,
 	}
 	exp, _ := payload["exp"].(float64)
 	expires := time.Unix(int64(exp), 0)
+	userId := payload["https://api.openai.com/auth"].(map[string]interface{})["user_id"].(string)
+	sub := payload["sub"].(string)
 
 	user := &db.User{
 		Email:        email,
 		Password:     password,
+		UserID:       userId,
+		Sub:          db.SubEnum(sub),
 		Token:        token,
 		RefreshToken: refreshToken,
 		ExpiryTime:   expires,
 		Comment:      comment,
 	}
-	res := sqlite.FirstOrCreate(&user, db.User{Email: user.Email})
+	res := sqlite.FirstOrCreate(&user, db.User{UserID: user.UserID})
 	if res.Error != nil {
 		logger.Error("sqlite.FirstOrCreate failed", zap.Error(res.Error))
 		return res.Error
 	}
 	if res.RowsAffected > 0 {
-		logger.Info("add user success and uuid is", zap.String("uuid", user.UUID))
+		logger.Info("add user success and uuid is", zap.String("user id", user.UserID))
 	} else {
-		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("uuid", user.UUID))
+		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("user id", user.UserID))
 	}
+	createUserTokenMap(token, userId, comment, sqlite)
+
 	return nil
+}
+
+func createUserTokenMap(token string, userId string, comment string, sqlite *gorm.DB) {
+	userToken := &db.UserToken{
+		Token:   token,
+		UserID:  userId,
+		Comment: comment,
+	}
+	userTokenRes := sqlite.FirstOrCreate(&userToken, db.UserToken{UserID: userId})
+	if userTokenRes.Error != nil {
+		logger.Error("sqlite.FirstOrCreate failed", zap.Error(userTokenRes.Error))
+	}
+	if userTokenRes.RowsAffected > 0 {
+		logger.Info("add user token success and uuid is", zap.String("user token id", userToken.UserID))
+	} else {
+		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("user token id", userToken.UserID))
+	}
 }
 
 func readerStringByCMD(printString string) string {

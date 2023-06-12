@@ -16,7 +16,7 @@ type SubEnum string
 const (
 	Google  SubEnum = "google-oauth2"
 	Outlook SubEnum = "windowslive"
-	OpenAI          = "auth0"
+	OpenAI  SubEnum = "auth0"
 )
 
 type User struct {
