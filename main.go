@@ -142,7 +142,12 @@ func addUserByFile(filePath string, sqlite *gorm.DB) {
 
 // addUser 添加用户
 func addUser(refreshToken string, email string, password string, comment string, sqlite *gorm.DB) error {
-	token, _ := pandora.GetTokenByRefreshToken(refreshToken)
+	var token string
+	if refreshToken == "" {
+		token, refreshToken, _ = pandora.Auth0(email, password, "", "")
+	} else {
+		token, _ = pandora.GetTokenByRefreshToken(refreshToken)
+	}
 	payload, err := pandora.CheckAccessToken(token)
 	if err != nil {
 		logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
