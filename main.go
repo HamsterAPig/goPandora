@@ -78,7 +78,7 @@ func main() {
 		comment := readerStringByCMD("Comment:") // 备注
 
 		if db.AddUser(refreshToken, email, password, comment) != nil {
-			logger.Error("db.AddUser failed")
+			logger.Error("db.AddUser failed", zap.Error(err))
 			return
 		}
 	} else if viper.GetString("user-add-file") != "" { // 读取文件添加用户
@@ -130,7 +130,11 @@ func addUserByFile(filePath string, sqlite *gorm.DB) {
 			refreshToken = fields[2]
 			notes = fields[3]
 		}
-		_ = db.AddUser(refreshToken, email, password, notes)
+		err = db.AddUser(refreshToken, email, password, notes)
+		if err != nil {
+			logger.Error("db.AddUser failed", zap.Error(err))
+			return
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		logger.Fatal("scanner.Err failed", zap.Error(err))

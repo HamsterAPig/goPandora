@@ -91,12 +91,19 @@ func (u *UserToken) BeforeCreate(tx *gorm.DB) error {
 }
 
 // AddUser 添加用户
-func AddUser(refreshToken string, email string, password string, comment string) error {
+func AddUser(refreshToken string, email string, password string, comment string) (err error) {
 	var token string
 	if refreshToken == "" {
-		token, refreshToken, _ = pandora.Auth0(email, password, "", "")
+		token, refreshToken, err = pandora.Auth0(email, password, "", "")
+		if err != nil {
+			return fmt.Errorf("pandora.Auth0 failed: %w", err)
+		}
 	} else {
-		token, _ = pandora.GetTokenByRefreshToken(refreshToken)
+		token, err = pandora.GetTokenByRefreshToken(refreshToken)
+		if err != nil {
+			return fmt.Errorf("pandora.GetTokenByRefreshToken failed: %w", err)
+			return err
+		}
 	}
 	payload, err := pandora.CheckAccessToken(token)
 	if err != nil {
@@ -124,8 +131,7 @@ func AddUser(refreshToken string, email string, password string, comment string)
 	}
 	res := db.FirstOrCreate(&user, User{UserID: user.UserID})
 	if res.Error != nil {
-		logger.Error("sqlite.FirstOrCreate failed", zap.Error(res.Error))
-		return res.Error
+		return fmt.Errorf("db.FirstOrCreate failed: %w", res.Error)
 	}
 	if res.RowsAffected > 0 {
 		logger.Info("add user success and uuid is", zap.String("user id", user.UserID))
@@ -145,7 +151,7 @@ func createUserTokenMap(token string, userId string, comment string) {
 	}
 	userTokenRes := db.FirstOrCreate(&userToken, UserToken{UserID: userId})
 	if userTokenRes.Error != nil {
-		logger.Error("sqlite.FirstOrCreate failed", zap.Error(userTokenRes.Error))
+		fmt.Errorf("db.FirstOrCreate failed: %w", userTokenRes.Error)
 	}
 	if userTokenRes.RowsAffected > 0 {
 		logger.Info("add user token success and uuid is", zap.String("user uuid", userToken.UUID.String()))
