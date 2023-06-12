@@ -9,12 +9,10 @@ import (
 	"go.uber.org/zap"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
-	"goPandora/internal/pandora"
 	"goPandora/web"
 	"gorm.io/gorm"
 	"os"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -79,7 +77,8 @@ func main() {
 		refreshToken := readerStringByCMD("RefreshToken:")
 		comment := readerStringByCMD("Comment:") // 备注
 
-		if addUser(refreshToken, email, password, comment, sqlite) == nil {
+		if db.AddUser(refreshToken, email, password, comment) == nil {
+			logger.Error("db.AddUser failed")
 			return
 		}
 	} else if viper.GetString("user-add-file") != "" { // 读取文件添加用户
@@ -131,73 +130,13 @@ func addUserByFile(filePath string, sqlite *gorm.DB) {
 			refreshToken = fields[2]
 			notes = fields[3]
 		}
-		_ = addUser(refreshToken, email, password, notes, sqlite)
+		_ = db.AddUser(refreshToken, email, password, notes)
 	}
 	if err := scanner.Err(); err != nil {
 		logger.Fatal("scanner.Err failed", zap.Error(err))
 		return
 	}
 	return
-}
-
-// addUser 添加用户
-func addUser(refreshToken string, email string, password string, comment string, sqlite *gorm.DB) error {
-	var token string
-	if refreshToken == "" {
-		token, refreshToken, _ = pandora.Auth0(email, password, "", "")
-	} else {
-		token, _ = pandora.GetTokenByRefreshToken(refreshToken)
-	}
-	payload, err := pandora.CheckAccessToken(token)
-	if err != nil {
-		logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
-		return err
-	}
-	exp, _ := payload["exp"].(float64)
-	expires := time.Unix(int64(exp), 0)
-	userId := payload["https://api.openai.com/auth"].(map[string]interface{})["user_id"].(string)
-	sub := payload["sub"].(string)
-
-	user := &db.User{
-		Email:        email,
-		Password:     password,
-		UserID:       userId,
-		Sub:          db.SubEnum(sub),
-		Token:        token,
-		RefreshToken: refreshToken,
-		ExpiryTime:   expires,
-		Comment:      comment,
-	}
-	res := sqlite.FirstOrCreate(&user, db.User{UserID: user.UserID})
-	if res.Error != nil {
-		logger.Error("sqlite.FirstOrCreate failed", zap.Error(res.Error))
-		return res.Error
-	}
-	if res.RowsAffected > 0 {
-		logger.Info("add user success and uuid is", zap.String("user id", user.UserID))
-	} else {
-		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("user id", user.UserID))
-	}
-	createUserTokenMap(token, userId, comment, sqlite)
-
-	return nil
-}
-
-func createUserTokenMap(token string, userId string, comment string, sqlite *gorm.DB) {
-	userToken := &db.UserToken{
-		Token:   token,
-		UserID:  userId,
-		Comment: comment,
-	}
-	userTokenRes := sqlite.FirstOrCreate(&userToken, db.UserToken{UserID: userId})
-	if userTokenRes.Error != nil {
-		logger.Error("sqlite.FirstOrCreate failed", zap.Error(userTokenRes.Error))
-	}
-	if userTokenRes.RowsAffected > 0 {
-		logger.Info("add user token success and uuid is", zap.String("user token id", userToken.UserID))
-	} else {
-		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("user token id", userToken.UserID))
-	}
 }
 
 func readerStringByCMD(printString string) string {
