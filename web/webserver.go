@@ -332,7 +332,7 @@ func autoLoginHandler(c *gin.Context) {
 		})
 		return
 	}
-	if true {
+	if ExpiryTime.Before(time.Now()) {
 		c.String(http.StatusFound, "正在自动更新Token，请稍后...")
 		token, err := db.UpdateTokenByUUID(uuid)
 		if err != nil {
