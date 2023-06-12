@@ -11,16 +11,31 @@ import (
 	"time"
 )
 
+type SubEnum string
+
+const (
+	Google  SubEnum = "google-oauth2"
+	Outlook SubEnum = "windowslive"
+	OpenAI          = "auth0"
+)
+
 type User struct {
 	ID           uint `gorm:"primary_key:autoIncrement"`
 	Email        string
 	Password     string
-	UUID         string `gorm:"unique"`
+	UserID       string  `gorm:"unique"`
+	Sub          SubEnum `gorm:type:enum("google-oauth2","windowslive", "auth0") default:"auth0"`
 	Token        string
 	RefreshToken string
 	UpdatedTime  time.Time `gorm:"autoUpdateTime"`
 	ExpiryTime   time.Time
 	Comment      string
+}
+
+type UserToken struct {
+	UUID   uuid.UUID `gorm:"primaryKey;type:char(36);not null;unique"`
+	UserID string
+	Token  string
 }
 
 var db *gorm.DB
@@ -67,7 +82,7 @@ func CloseDB() {
 }
 
 // BeforeCreate 向User表插入数据后自动添加UUID
-func (u *User) BeforeCreate(tx *gorm.DB) error {
-	u.UUID = uuid.New().String()
+func (u *UserToken) BeforeCreate(tx *gorm.DB) error {
+	u.UUID = uuid.New()
 	return nil
 }
