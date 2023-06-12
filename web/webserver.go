@@ -325,7 +325,7 @@ func postLoginHandler(c *gin.Context) {
 func autoLoginHandler(c *gin.Context) {
 	uuid := c.Param("uuid")
 	Token, ExpiryTime, err := db.GetTokenAndExpiryTimeByUUID(uuid)
-	if err != nil || Token == "" {
+	if err != nil {
 		logger.Error("db.GetTokenAndExpiryTimeByUUID failed", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Unknown UUID",
@@ -334,13 +334,14 @@ func autoLoginHandler(c *gin.Context) {
 	}
 	if ExpiryTime.Before(time.Now()) {
 		c.String(http.StatusFound, "正在自动更新Token，请稍后...")
-		token, err := db.UpdateTokenByUUID(uuid)
+		_, err := db.UpdateTokenByUUID(uuid)
 		if err != nil {
 			c.String(http.StatusBadRequest, "\n更新Token失败")
 			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
 			return
 		}
-		Token = token
+		c.String(http.StatusOK, "\n更新Token成功")
+		c.Redirect(http.StatusFound, "/auth/login_auto/"+uuid)
 	}
 
 	// 设置cookie
