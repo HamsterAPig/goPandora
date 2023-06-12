@@ -154,3 +154,19 @@ func createUserTokenMap(token string, userId string, comment string) {
 		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("user token id", userToken.UserID))
 	}
 }
+
+// GetTokenAndExpiryTimeByUUID 根据UUID获取token与过期时间
+func GetTokenAndExpiryTimeByUUID(uuid string) (string, time.Time, error) {
+	var userToken struct {
+		Token      string
+		ExpiryTime time.Time
+	}
+
+	db.Table("user_tokens").
+		Select("user_tokens.token, users.expiry_time").
+		Joins("JOIN users ON user_tokens.user_id = users.user_id").
+		Where("user_tokens.uuid = ?", uuid).
+		First(&userToken)
+
+	return userToken.Token, userToken.ExpiryTime, db.Error
+}
