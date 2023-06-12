@@ -77,7 +77,7 @@ func main() {
 		refreshToken := readerStringByCMD("RefreshToken:")
 		comment := readerStringByCMD("Comment:") // 备注
 
-		if db.AddUser(refreshToken, email, password, comment) == nil {
+		if db.AddUser(refreshToken, email, password, comment) != nil {
 			logger.Error("db.AddUser failed")
 			return
 		}
