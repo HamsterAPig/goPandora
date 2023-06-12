@@ -109,8 +109,7 @@ func AddUser(refreshToken string, email string, password string, comment string)
 	sub := payload["sub"].(string)
 	index := strings.Index(sub, "|")
 	if index != -1 {
-		substring := sub[:index]
-		fmt.Println(substring)
+		sub = sub[:index]
 	}
 
 	user := &User{
@@ -149,7 +148,7 @@ func createUserTokenMap(token string, userId string, comment string) {
 		logger.Error("sqlite.FirstOrCreate failed", zap.Error(userTokenRes.Error))
 	}
 	if userTokenRes.RowsAffected > 0 {
-		logger.Info("add user token success and uuid is", zap.String("user token id", userToken.UserID))
+		logger.Info("add user token success and uuid is", zap.String("user uuid", userToken.UUID.String()))
 	} else {
 		logger.Info("The record already exists and the insert operation is skipped and uuid is", zap.String("user token id", userToken.UserID))
 	}
