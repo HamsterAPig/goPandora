@@ -325,16 +325,18 @@ func postLoginHandler(c *gin.Context) {
 func autoLoginHandler(c *gin.Context) {
 	uuid := c.Param("uuid")
 	Token, ExpiryTime, err := db.GetTokenAndExpiryTimeByUUID(uuid)
-	if err != nil {
+	if err != nil || Token == "" {
 		logger.Error("db.GetTokenAndExpiryTimeByUUID failed", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "Unknown UUID",
 		})
+		return
 	}
-	if ExpiryTime.Before(time.Now()) {
+	if true {
 		c.String(http.StatusFound, "正在自动更新Token，请稍后...")
 		token, err := db.UpdateTokenByUUID(uuid)
 		if err != nil {
+			c.String(http.StatusBadRequest, "\n更新Token失败")
 			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
 			return
 		}
