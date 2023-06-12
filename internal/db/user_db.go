@@ -176,6 +176,7 @@ func GetTokenAndExpiryTimeByUUID(uuid string) (string, time.Time, error) {
 	return userToken.Token, userToken.ExpiryTime, db.Error
 }
 
+// UpdateTokenByUUID 通过UUID更新token
 func UpdateTokenByUUID(uuid string) (token string, err error) {
 	var user User
 	var userToken UserToken
@@ -201,4 +202,14 @@ func UpdateTokenByUUID(uuid string) (token string, err error) {
 	db.Table("users").Save(&user)
 
 	return user.Token, nil
+}
+
+// ListAllUser 显示所有用户
+func ListAllUser() {
+	var userTokens []UserToken
+
+	db.Find(&userTokens)
+	for _, user := range userTokens {
+		fmt.Printf("%s %s %s\n", user.UUID, user.UserID, user.Comment)
+	}
 }

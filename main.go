@@ -87,6 +87,7 @@ func main() {
 		addUserByFile(filePath, sqlite)
 		return
 	} else if viper.GetBool("user-list") {
+		db.ListAllUser()
 	} else {
 		web.Param = web.PandoraParam{
 			ApiPrefix:     gptPre,
