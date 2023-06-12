@@ -203,8 +203,8 @@ func UpdateTokenByUUID(uuid string) (token string, err error) {
 	if user.Token == "" {
 		return "", fmt.Errorf("token is empty")
 	}
-	db.Table("user_tokens").Save(&userToken)
-	db.Table("users").Save(&user)
+	db.Save(&userToken)
+	db.Save(&user)
 
 	return user.Token, nil
 }
