@@ -63,6 +63,12 @@ func InitSQLite(dbFilePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %w", err)
 	}
+
+	defer CloseDB()
+	err = db.AutoMigrate(&User{}, &UserToken{})
+	if err != nil {
+		return fmt.Errorf("sqlite.AutoMigrate failed, %v", zap.Error(err))
+	}
 	return nil
 }
 

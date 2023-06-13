@@ -3,13 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"goPandora/config"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
 	"goPandora/web"
-	"gorm.io/gorm"
 	"os"
 	"strings"
 )
@@ -33,13 +31,6 @@ func main() {
 		logger.Error("db.InitSQLite failed", zap.Error(err))
 		return
 	}
-	defer db.CloseDB()
-	sqlite, _ := db.GetDB()
-	err = sqlite.AutoMigrate(&db.User{}, &db.UserToken{})
-	if err != nil {
-		logger.Error("sqlite.AutoMigrate failed", zap.Error(err))
-		return
-	}
 
 	if config.Conf.MainConfig.UserAdd { // 添加用户
 		email := readerStringByCMD("Email:")
@@ -52,9 +43,9 @@ func main() {
 			return
 		}
 	} else if config.Conf.MainConfig.UserAddByFilePath != "" { // 读取文件添加用户
-		filePath := viper.GetString("user-add-file")
+		filePath := config.Conf.MainConfig.UserAddByFilePath
 		// 读取配置文件
-		addUserByFile(filePath, sqlite)
+		addUserByFile(filePath)
 		return
 	} else if config.Conf.MainConfig.UserList {
 		ret := db.ListAllUser()
@@ -74,7 +65,7 @@ func main() {
 }
 
 // addUserByFile 通过文件添加用户
-func addUserByFile(filePath string, sqlite *gorm.DB) {
+func addUserByFile(filePath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		logger.Fatal("os.Open failed", zap.Error(err))
@@ -103,6 +94,9 @@ func addUserByFile(filePath string, sqlite *gorm.DB) {
 			password = fields[1]
 			refreshToken = fields[2]
 			notes = fields[3]
+		} else if len(fields) == 2 {
+			email = fields[0]
+			password = fields[1]
 		}
 		err = db.AddUser(refreshToken, email, password, notes)
 		if err != nil {
