@@ -27,7 +27,7 @@
                 {[ end ]}
             </div>
             <div class="col-sm">
-                <button onclick="copyToClipboard('{[ index $value 0 ]}')" class="btn btn-success" >复制</button>
+                <button class="btn btn-success copy-btn" data-clipboard-text="{[ index $value 0 ]}">复制</button>
             </div>
         </div>
     </li>
@@ -35,15 +35,23 @@
 </ul>
 
 <script>
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text)
-            .then(() => {
-                console.log("Text copied to clipboard");
-            })
-            .catch((error) => {
-                console.error("Failed to copy text: ", error);
-            });
-    }
+    let copyButtons = document.querySelectorAll('[class~=copy-btn]');
+
+    console.log(copyButtons);
+
+    let clipboard = new ClipboardJS(copyButtons);
+
+    clipboard.on('success', function (e) {
+        console.info('Action:', e.action);
+        console.info('Text:', e.text);
+        console.info('Trigger:', e.trigger);
+    });
+
+    clipboard.on('error', function (e) {
+        console.info('Action:', e.action);
+        console.info('Text:', e.text);
+        console.info('Trigger:', e.trigger);
+    });
 </script>
 </body>
 </html>
