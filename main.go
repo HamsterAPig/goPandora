@@ -57,7 +57,10 @@ func main() {
 		addUserByFile(filePath, sqlite)
 		return
 	} else if config.Conf.MainConfig.UserList {
-		db.ListAllUser()
+		ret := db.ListAllUser()
+		for _, item := range ret {
+			println(item)
+		}
 	} else {
 		web.Param = web.PandoraParam{
 			ApiPrefix:     config.Conf.MainConfig.ChatGPTAPIPrefix,

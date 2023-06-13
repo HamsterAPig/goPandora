@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"goPandora/config"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
 	"gorm.io/driver/sqlite"
@@ -217,11 +218,19 @@ func UpdateTokenByUUID(uuid string) (token string, err error) {
 }
 
 // ListAllUser 显示所有用户
-func ListAllUser() {
+func ListAllUser() (ret []string) {
 	var userTokens []UserToken
 
 	db.Find(&userTokens)
-	for _, user := range userTokens {
-		fmt.Printf("%s %s %s\n", user.UUID, user.UserID, user.Comment)
+	if config.Conf.WebConfig.WebsiteDomainName == "" {
+		for _, user := range userTokens {
+			ret = append(ret, fmt.Sprintf("%s %s %s", user.UUID, user.UserID, user.Comment))
+		}
+	} else {
+		for _, user := range userTokens {
+			host := strings.TrimRight(config.Conf.WebConfig.WebsiteDomainName, "/") // 确保右边不会出现两次/
+			ret = append(ret, fmt.Sprintf("%s/auth/login_auto/%s,%s", host, user.UUID, user.Comment))
+		}
 	}
+	return ret
 }
