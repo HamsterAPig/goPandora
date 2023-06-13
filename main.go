@@ -31,7 +31,13 @@ func main() {
 		logger.Error("db.InitSQLite failed", zap.Error(err))
 		return
 	}
-
+	defer db.CloseDB()
+	sqlite, _ := db.GetDB()
+	err = sqlite.AutoMigrate(&db.User{}, &db.UserToken{})
+	if err != nil {
+		logger.Error("sqlite.AutoMigrate failed", zap.Error(err))
+		return
+	}
 	if config.Conf.MainConfig.UserAdd { // 添加用户
 		email := readerStringByCMD("Email:")
 		password := readerStringByCMD("Password:")
