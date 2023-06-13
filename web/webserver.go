@@ -340,7 +340,7 @@ func autoLoginHandler(c *gin.Context) {
 			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
 			return
 		}
-		c.String(http.StatusOK, "\n更新Token成功")
+		c.String(http.StatusOK, "\n更新Token成功！")
 	}
 
 	// 设置cookie
@@ -356,6 +356,7 @@ func autoLoginHandler(c *gin.Context) {
 	}
 	http.SetCookie(c.Writer, cookie)
 	c.Redirect(http.StatusFound, "/")
+	c.String(http.StatusOK, "若网页并没有跳转，请手动刷新本页...")
 }
 
 // userInfoHandler 获取当前用户的信息
