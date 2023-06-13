@@ -1,7 +1,6 @@
 package web
 
 import (
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -60,10 +59,7 @@ func ServerStart(address string) {
 			return template.JS(bytes)
 		},
 	})
-
-	// 使用Gzip压缩中间件
-	router.Use(GzipMiddleware())
-
+	
 	// 加载模板
 	router.LoadHTMLGlob("web/gin/templates/*")
 
@@ -647,32 +643,4 @@ func error404(c *gin.Context) {
 		"pandora_sentry": Param.PandoraSentry,
 		"api_prefix":     Param.ApiPrefix,
 	})
-}
-
-func GzipMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("Content-Encoding", "gzip")
-		c.Header("Vary", "Accept-Encoding")
-
-		if strings.Contains(c.Request.Header.Get("Accept-Encoding"), "gzip") {
-			gz := gzip.NewWriter(c.Writer)
-			defer gz.Close()
-
-			c.Writer = &gzipResponseWriter{
-				ResponseWriter: c.Writer,
-				Writer:         gz,
-			}
-
-			c.Next()
-		}
-	}
-}
-
-type gzipResponseWriter struct {
-	gin.ResponseWriter
-	io.Writer
-}
-
-func (w *gzipResponseWriter) Write(data []byte) (int, error) {
-	return w.Writer.Write(data)
 }
