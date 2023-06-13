@@ -19,6 +19,29 @@ Pandora项目地址：https://github.com/pengzhile/pandora
 * -p: socks代理地址
 * --CHATGPT_API_PREFIX: 配置ChatGPT的代理服务器地址，eg --CHATGPT_API_PREFIX=https://ai.fakeopen.com
 
+### 配置文件
+
+> 注意：如果通过-c指定了配置文件，那么命令行的相关参数将失效。也即配置文件的优先级大于命令行的优先级
+
+```yml
+main:
+  listen: 127.0.0.1:8080
+  proxys:
+    - http://127.0.0.1:8083
+    - http://127.0.0.1:8081
+    - http://127.0.0.1:8082
+  database: ./data.db
+  debug-level: info
+  ChatGPT_API_PREFIX: https://ai.fakeopen.com
+
+web:
+  WebUserListPath: /list-all
+  EnableSharePageVerify: true
+  WebSiteDomainName: http://127.0.0.1:8080
+```
+
+并且需要注意的是，如果你配置了`WebUserListPath`，请保护好这个接口，这个接口没有做任何权限验证。你可以使用类似于`Nginx Basic Auth`之类的接口进行权限验证
+
 ## Nginx 前置代理配置
 
 本项目中并没有内置https的处理，所以还得配置Nginx作为前置代理服务器，需要将以下内容加入Nginx的配置文件当中

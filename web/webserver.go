@@ -106,8 +106,22 @@ func ServerStart(address string) {
 
 	// 自动设置cookie以到达访问url自动登陆的页面
 	router.GET("/auth/login_auto/:uuid", autoLoginHandler)
+	if config.Conf.WebConfig.UserListPath != "" {
+		router.GET(config.Conf.WebConfig.UserListPath, func(c *gin.Context) {
+			ret := db.ListAllUser()
+			// 构建二维切片，每个元素是字符串分割后的结果
+			data := [][]string{}
+			for _, str := range ret {
+				parts := strings.Split(str, ",")
+				data = append(data, parts)
+			}
+			c.HTML(http.StatusOK, "list_user.html", gin.H{
+				"userList": data,
+			})
+		})
+	}
 
-	// 根据会话ID选择模板
+	// 404
 	router.GET("/404.html", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "404.html", gin.H{
 			"api_prefix":     Param.ApiPrefix,
