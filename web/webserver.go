@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
+	"goPandora/config"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
@@ -27,6 +28,13 @@ type PandoraParam struct {
 var Param PandoraParam
 
 func ServerStart(address string) {
+	// 设置gin日志等级
+	if config.Conf.MainConfig.DebugLevel == "debug" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	router := gin.Default()
 	router.Delims("{[", "]}")
 	// 注册自定义模板函数

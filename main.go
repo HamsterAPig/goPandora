@@ -3,10 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"goPandora/config"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
 	"goPandora/web"
@@ -16,49 +15,20 @@ import (
 )
 
 func main() {
-
-	// 绑定命令行参数
-	pflag.StringP("server", "s", ":8080", "server address")
-	pflag.StringSliceP("proxys", "p", nil, "proxy address")
-	pflag.StringP("database", "b", "./data.db", "database file path")
-	pflag.String("CHATGPT_API_PREFIX", "https://ai.fakeopen.com", "CHATGPT_API_PREFIX")
-	pflag.String("user-add-file", "", "add user file path")
-	pflag.String("web-user-list", "", "user list file path")
-	pflag.String("debug-level", "info", "debug level")
-	pflag.Bool("user-add", false, "add user")
-	pflag.Bool("user-list", false, "list user")
-	pflag.Bool("enable_share_page_verify", true, "enable share page verify")
-	pflag.Parse()
-
-	// 初始化Viperr
-	err := viper.BindPFlags(pflag.CommandLine)
+	var err error
+	config.Conf, err = config.ReadConfig()
 	if err != nil {
-		logger.Error("viper.BindPFlags failed", zap.Error(err))
-		return
+		if err.Error() == "no enough arguments" {
+			return
+		} else {
+			fmt.Println("read config failed")
+			panic(err)
+			return
+		}
 	}
 
-	// 读取命令行参数的值
-	server := viper.GetString("server")
-	proxies := viper.GetStringSlice("proxys")
-	gptPre := viper.GetString("CHATGPT_API_PREFIX")
-	dbFilePath := viper.GetString("database")
-
-	// 设置gin日志等级
-	if viper.GetString("debug-level") == "debug" {
-		gin.SetMode(gin.DebugMode)
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	// 初始化logger
-	logger.InitLogger(viper.GetString("debug-level"))
-	// 打印结果
-	logger.Debug("server", zap.String("server", server))
-	logger.Debug("proxys", zap.Strings("proxys", proxies))
-	logger.Debug("database", zap.String("database", dbFilePath))
-	logger.Debug("CHATGPT_API_PREFIX", zap.String("CHATGPT_API_PREFIX", gptPre))
-
-	err = db.InitSQLite(dbFilePath)
+	logger.InitLogger(config.Conf.MainConfig.DebugLevel)
+	err = db.InitSQLite(config.Conf.MainConfig.DatabasePath)
 	if err != nil {
 		logger.Error("db.InitSQLite failed", zap.Error(err))
 		return
@@ -71,7 +41,7 @@ func main() {
 		return
 	}
 
-	if viper.GetBool("user-add") { // 添加用户
+	if config.Conf.MainConfig.UserAdd { // 添加用户
 		email := readerStringByCMD("Email:")
 		password := readerStringByCMD("Password:")
 		refreshToken := readerStringByCMD("RefreshToken:")
@@ -81,22 +51,22 @@ func main() {
 			logger.Error("db.AddUser failed", zap.Error(err))
 			return
 		}
-	} else if viper.GetString("user-add-file") != "" { // 读取文件添加用户
+	} else if config.Conf.MainConfig.UserAddByFilePath != "" { // 读取文件添加用户
 		filePath := viper.GetString("user-add-file")
 		// 读取配置文件
 		addUserByFile(filePath, sqlite)
 		return
-	} else if viper.GetBool("user-list") {
+	} else if config.Conf.MainConfig.UserList {
 		db.ListAllUser()
 	} else {
 		web.Param = web.PandoraParam{
-			ApiPrefix:     gptPre,
+			ApiPrefix:     config.Conf.MainConfig.ChatGPTAPIPrefix,
 			PandoraSentry: false,
 			BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
 		}
 		// 设置是否启用分享页查看验证
-		web.Param.EnableSharePageVerify = viper.GetBool("enable_share_page_verify")
-		web.ServerStart(server)
+		web.Param.EnableSharePageVerify = config.Conf.WebConfig.EnableSharePage
+		web.ServerStart(config.Conf.MainConfig.Listen)
 	}
 }
 
