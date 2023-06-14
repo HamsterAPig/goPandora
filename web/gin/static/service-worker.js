@@ -59,9 +59,6 @@ self.addEventListener('install', event => {
                 '/_next/static/css/df35a37d1f08004f.css',
                 '/_next/static/cx416mT2Lb0ZTj5FxFg1l/buildManifest1.js',
                 '/_next/static/cx416mT2Lb0ZTj5FxFg1l/ssgManifest.js',
-                'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js',
-                'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css',
-                'https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js'
             ]);
         })
     );

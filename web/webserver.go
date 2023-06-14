@@ -37,10 +37,21 @@ func ServerStart() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-
 	g.Go(func() error {
 		return pandoraCloud.ListenAndServe()
 	})
+
+	if config.Conf.MainConfig.AdminListen != "" {
+		adminGo := &http.Server{
+			Addr:         config.Conf.MainConfig.AdminListen,
+			Handler:      utils.AdminRouter(),
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+		g.Go(func() error {
+			return adminGo.ListenAndServe()
+		})
+	}
 
 	if err := g.Wait(); err != nil {
 		logger.Fatal("ListenAndServe: ", zap.Error(err))

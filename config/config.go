@@ -13,6 +13,7 @@ type VariableConfig struct {
 
 type MainSection struct {
 	Listen           string   `mapstructure:"listen"`             // 监听地址
+	AdminListen      string   `mapstructure:"admin_listen"`       // 管理员监听地址
 	ProxyGroup       []string `mapstructure:"proxys"`             // 代理组
 	DatabasePath     string   `mapstructure:"database"`           // 数据库路径
 	DebugLevel       string   `mapstructure:"debug-level"`        // 日志等级
