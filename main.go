@@ -59,14 +59,7 @@ func main() {
 			println(item)
 		}
 	} else {
-		web.Param = web.PandoraParam{
-			ApiPrefix:     config.Conf.MainConfig.ChatGPTAPIPrefix,
-			PandoraSentry: false,
-			BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
-		}
-		// 设置是否启用分享页查看验证
-		web.Param.EnableSharePageVerify = config.Conf.WebConfig.EnableSharePage
-		web.ServerStart(config.Conf.MainConfig.Listen)
+		web.ServerStart()
 	}
 }
 
