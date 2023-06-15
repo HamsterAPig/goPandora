@@ -9,7 +9,9 @@ import (
 	logger "goPandora/internal/log"
 	"goPandora/web"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -53,6 +55,41 @@ func main() {
 		// 读取配置文件
 		addUserByFile(filePath)
 		return
+	} else if config.Conf.MainConfig.ShareTokenAddByID {
+		ids := readerStringByCMD("Enter ShareToken ID(s):")
+		// 拆分字符串为起始和结束值
+		rangeValues := strings.Split(ids, "-")
+		start, _ := strconv.Atoi(rangeValues[0])
+		end, _ := strconv.Atoi(rangeValues[1])
+
+		// 构建数字切片
+		var numbers []int
+		for i := start; i <= end; i++ {
+			numbers = append(numbers, i)
+		}
+		uniqueName := readerStringByCMD("Unique Name:")
+		siteLimit := readerStringByCMD("Site Limit:")
+		ExpireTimeStr := readerStringByCMD("Expire Time:")
+		ExpireTime, err := strconv.Atoi(ExpireTimeStr)
+		if err != nil {
+			logger.Fatal("strconv.Atoi failed", zap.Error(err))
+		}
+		comment := readerStringByCMD("Comment:")
+		logger.Debug("Enter param",
+			zap.Ints("Numbers", numbers),
+			zap.String("uniqueName", uniqueName),
+			zap.String("siteLimit", siteLimit),
+			zap.Int("ExpireTime", ExpireTime),
+			zap.String("comment", comment),
+		)
+
+		for _, id := range numbers {
+			userID, err := db.GetUserIDByID(id)
+			if err != nil {
+				logger.Error("db.GetUserIDByID failed", zap.Error(err))
+			}
+			err = db.CreateShareToken(userID, uniqueName, time.Duration(ExpireTime)*time.Second, siteLimit, comment)
+		}
 	} else if config.Conf.MainConfig.UserList {
 		ret := db.ListAllUser()
 		for _, item := range ret {

@@ -244,3 +244,12 @@ func GetAccessTokenByUserID(userID string) (accessToken string, err error) {
 	}
 	return user.Token, nil
 }
+
+func GetUserIDByID(ID int) (string, error) {
+	var user User
+	res := db.Where("ID = ?", ID).First(&user)
+	if res.RowsAffected == 0 {
+		return "", fmt.Errorf("RecordNotFound")
+	}
+	return user.UserID, nil
+}

@@ -21,8 +21,9 @@ type MainSection struct {
 
 	// 仅限命令行下使用的参数
 	UserAddByFilePath string `mapstructure:"UserAddByFilePath"` // 通过文件批量添加用户
-	UserList          bool   `mapstructure:"UserList"`          // 显示所有用户信息
-	UserAdd           bool   `mapstructure:"UserAdd"`           // 添加用户
+	ShareTokenAddByID bool   //通过user table id添加用户
+	UserList          bool   `mapstructure:"UserList"` // 显示所有用户信息
+	UserAdd           bool   `mapstructure:"UserAdd"`  // 添加用户
 }
 
 type WebSection struct {
@@ -46,6 +47,7 @@ func ReadConfig() (*VariableConfig, error) {
 	pflag.String("user-add-file", "", "add user file path")
 	pflag.String("web-user-list", "", "user list file path")
 	pflag.String("debug-level", "info", "debug level")
+	pflag.Bool("share-token-add-id", false, "share token add id")
 	pflag.Bool("user-add", false, "add user")
 	pflag.Bool("user-list", false, "list user")
 	pflag.Bool("enable_share_page_verify", true, "enable share page verify")
@@ -82,6 +84,7 @@ func ReadConfig() (*VariableConfig, error) {
 	ret.MainConfig.UserList = cmdViper.GetBool("user-list")
 	ret.MainConfig.UserAddByFilePath = cmdViper.GetString("user-add-file")
 	ret.MainConfig.UserAdd = cmdViper.GetBool("user-add")
+	ret.MainConfig.ShareTokenAddByID = cmdViper.GetBool("share-token-add-id")
 	// 如果未指定配置文件且未提供其他命令行参数，则显示帮助信息
 	if configFilePath == "" && !ret.MainConfig.UserAdd && !ret.MainConfig.UserList && ret.MainConfig.UserAddByFilePath == "" {
 		pflag.Usage()
