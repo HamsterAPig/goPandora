@@ -49,7 +49,9 @@ func CreateShareToken(userID string, uniqueName string, ExpireTime time.Duration
 	if err != nil {
 		return fmt.Errorf("getShareToken failed: %w", err)
 	}
-	return nil
+
+	res = db.Save(&shareTokenValue)
+	return res.Error
 }
 
 func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.Duration) error {
