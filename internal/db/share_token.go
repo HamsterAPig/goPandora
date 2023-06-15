@@ -15,7 +15,7 @@ type ShareToken struct {
 	ID          uint `gorm:"primary_key:autoIncrement"`
 	UserID      string
 	UniqueName  string
-	ExpiresTime int64
+	ExpiresTime time.Time
 	SiteLimit   string
 	SK          string    `gorm:"unique"`
 	UpdateTime  time.Time `gorm:"autoUpdateTime"`
@@ -105,6 +105,6 @@ func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.D
 	}
 	shareTokenStruct.SK = data.TokenKey
 	shareTokenStruct.UniqueName = data.UniqueName
-	shareTokenStruct.ExpiresTime = data.ExpireAt
+	shareTokenStruct.ExpiresTime = time.Unix(int64(data.ExpireAt), 0)
 	return nil
 }
