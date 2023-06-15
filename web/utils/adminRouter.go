@@ -61,6 +61,19 @@ func AdminRouter() http.Handler {
 			shareTokens := db.GetAllShareToken()
 			c.JSON(http.StatusOK, shareTokens)
 		})
+
+		// 通过userID获取accessToken
+		apiV1Group.GET("/getAccessToken", func(c *gin.Context) {
+			userID := c.Query("userID")
+			accessToken, err := db.GetAccessTokenByUserID(userID)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			c.JSON(http.StatusOK, accessToken)
+		})
 	}
 	return router
 }

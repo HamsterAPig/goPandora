@@ -234,3 +234,13 @@ func ListAllUser() (ret []string) {
 	}
 	return ret
 }
+
+// GetAccessTokenByUserID 根据用户ID获取token
+func GetAccessTokenByUserID(userID string) (accessToken string, err error) {
+	var user User
+	res := db.Where("user_id = ?", userID).First(&user)
+	if res.RowsAffected == 0 {
+		return "", fmt.Errorf("RecordNotFound")
+	}
+	return user.Token, nil
+}
