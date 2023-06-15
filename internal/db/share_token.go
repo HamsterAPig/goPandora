@@ -90,6 +90,12 @@ func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.D
 	}
 	shareTokenStruct.SK = data.TokenKey
 	shareTokenStruct.UniqueName = data.UniqueName
-	shareTokenStruct.ExpiresAt = time.Unix(data.ExpireAt, 0)
+	shareTokenStruct.ExpiresTime = data.ExpireAt
 	return nil
+}
+
+func GetAllShareToken() []ShareToken {
+	var shareTokens []ShareToken
+	db.Find(&shareTokens)
+	return shareTokens
 }

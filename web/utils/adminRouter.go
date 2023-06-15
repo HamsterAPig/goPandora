@@ -39,7 +39,7 @@ func AdminRouter() http.Handler {
 	})
 
 	// 加载模板
-	router.LoadHTMLGlob("web/gin/admin/*")
+	router.LoadHTMLGlob("web/gin/admin/templates/*")
 
 	router.GET(config.Conf.WebConfig.UserListPath, func(c *gin.Context) {
 		ret := db.ListAllUser()
@@ -53,5 +53,14 @@ func AdminRouter() http.Handler {
 			"userList": data,
 		})
 	})
+
+	apiV1Group := router.Group("/api/v1")
+	{
+		// 显示所有的ShareToken
+		apiV1Group.GET("/getAllShareToken", func(c *gin.Context) {
+			shareTokens := db.GetAllShareToken()
+			c.JSON(http.StatusOK, shareTokens)
+		})
+	}
 	return router
 }
