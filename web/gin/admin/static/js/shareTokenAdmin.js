@@ -73,18 +73,16 @@ function handleUpdateBtn() {
     // 监听更新按钮的点击事件
     const updateButton = document.querySelector('#updateButton');
     updateButton.addEventListener('click', function () {
-        const selectedRows = [];
         checkboxes = document.querySelectorAll('#shareTokenTable tbody input[type="checkbox"]');
         checkboxes.forEach((checkbox, index) => {
             if (checkbox.checked) {
                 const row = checkbox.closest('tr');
                 const rowData = shareTokenData[index];
-                selectedRows.push(rowData);
+                sendDataToGetShareToken(fakeopenUrl, rowData);
             }
         });
 
         console.log('选中的行数据:', selectedRows);
-        sendDataToGetShareToken(fakeopenUrl, selectedRows)
         // 在这里可以执行其他操作，例如将选中行的数据发送到服务器等
     });
 }
@@ -101,25 +99,37 @@ async function getDataFromAPI(url) {
         return null;
     }
 }
+function getAccessTokenByUserID(userID) {
+    let url = serverUrl + '/api/v1/getAccessToken?userID=' + encodeURIComponent(userID);
+    return fetch(url)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Request failed with status: ' + response.status);
+            }
+            return response.text();
+        })
+        .then(function(data) {
+            // 处理返回的数据
+            console.log(data);
+            return data;
+        })
+        .catch(function(error) {
+            // 处理错误
+            console.error(error);
+        });
+}
 
 function sendDataToGetShareToken(url, data) {
-    let myHeaders = new Headers();
-    myHeaders.append("User-Agent", navigator.userAgent);
-    myHeaders.append("Accept", "*/*");
-    myHeaders.append("Cache-Control", "no-cache");
-    myHeaders.append("Host", "ai.fakeopen.com");
-    myHeaders.append("Connection", "keep-alive");
-    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
     let urlencoded = new URLSearchParams();
+    let accessToken = getAccessTokenByUserID(data.UserID);
     urlencoded.append("unique_name", data.UniqueName);
-    urlencoded.append("access_token", data.AssessToken);
+    urlencoded.append("access_token", accessToken);
     urlencoded.append("expires_in", data.ExpiresTime);
     urlencoded.append("site_limit", data.SiteLimit);
 
     let requestOptions = {
         method: 'POST',
-        headers: myHeaders,
         body: urlencoded,
         redirect: 'follow'
     };
