@@ -59,54 +59,5 @@ func AdminRouter() http.Handler {
 			"userList": data,
 		})
 	})
-
-	apiV1Group := router.Group("/api/v1")
-	{
-		// 显示所有的ShareToken
-		apiV1Group.GET("/getAllShareToken", func(c *gin.Context) {
-			shareTokens, err := db.GetAllShareToken()
-			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			c.JSON(http.StatusOK, shareTokens)
-		})
-
-		// 通过userID获取accessToken
-		apiV1Group.GET("/getAccessToken", func(c *gin.Context) {
-			userID := c.Query("userID")
-			accessToken, err := db.GetAccessTokenByUserID(userID)
-			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			c.JSON(http.StatusOK, accessToken)
-		})
-
-		apiV1Group.POST("/updateShareToken", func(c *gin.Context) {
-			var shareToken db.ShareToken
-			err := c.ShouldBind(&shareToken)
-			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			err = db.UpdateShareToken(&shareToken)
-			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			c.JSON(http.StatusOK, gin.H{
-				"message": "success",
-			})
-		})
-	}
 	return router
 }
