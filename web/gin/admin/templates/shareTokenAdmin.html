@@ -32,27 +32,27 @@
                         <form id="addShareTokenForm">
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="form-userID" placeholder="用户名"
-                                       name="form-userID">
+                                       name="UserID">
                                 <label for="form-userID">User ID</label>
                             </div>
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="form-uniqueName" placeholder="识别用名"
-                                       name="form-uniqueName">
+                                       name="UniqueName">
                                 <label for="form-uniqueName">Unique Name</label>
                             </div>
                             <div class="form-floating mb-3">
                                 <input type="number" class="form-control" id="form-expiredSeconds"
-                                       placeholder="过期秒数" name="form-expiredSeconds">
+                                       placeholder="过期秒数" name="ExpiresTime">
                                 <label for="form-expiredSeconds">过期秒数</label>
                             </div>
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="form-siteLimit" placeholder="限制网站"
-                                       name="form-siteLimit">
+                                       name="SiteLimit">
                                 <label for="form-siteLimit">限制网站</label>
                             </div>
                             <div class="form-floating mb-3">
                                 <textarea class="form-control" placeholder="Leave a comment here"
-                                          id="floatingTextarea" name="floatingTextarea"></textarea>
+                                          id="floatingTextarea" name="Comment"></textarea>
                                 <label for="floatingTextarea">备注</label>
                             </div>
                         </form>
@@ -88,7 +88,8 @@
     </div>
 </div>
 <script>
-    let getShareTokenUrl = "http://127.0.0.1:8081/api/v1/getAllShareToken"
+    let serverUrl = "http://127.0.0.1:8081"
+    let fakeopenUrl = "http://127.0.0.1:8081"
 </script>
 <script async src="../static/js/shareTokenAdmin.js"></script>
 </body>

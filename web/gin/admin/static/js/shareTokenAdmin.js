@@ -2,7 +2,7 @@ let checkboxes; // 全局变量
 let shareTokenData
 
 function renderShareTokenTable(data) {
-    getDataFromAPI(getShareTokenUrl).then(data => {
+    getDataFromAPI(serverUrl+"/api/v1/getAllShareToken").then(data => {
         let tableBody = document.querySelector('#shareTokenTable tbody');
         shareTokenData = data;
         data.forEach(token => {
@@ -84,7 +84,7 @@ function handleUpdateBtn() {
         });
 
         console.log('选中的行数据:', selectedRows);
-        sendDataToGetShareToken("https://example.com/api", selectedRows)
+        sendDataToGetShareToken(fakeopenUrl, selectedRows)
         // 在这里可以执行其他操作，例如将选中行的数据发送到服务器等
     });
 }
@@ -137,9 +137,7 @@ function sendDataToGetShareToken(url, data) {
 }
 
 renderShareTokenTable();// 显示所有来自于json的数据
-document.addEventListener('DOMContentLoaded', function () {
-    console.log("dom loaded");
-    bindSelectAllCheckbox();
-    handleSubmitForm(); // 提交表单
-    handleUpdateBtn();
-});
+console.log("dom loaded");
+bindSelectAllCheckbox();
+handleSubmitForm(); // 提交表单
+handleUpdateBtn();
