@@ -1,8 +1,10 @@
 let checkboxes; // 全局变量
+let shareTokenData
 
 function renderShareTokenTable(data) {
-    getDataFromAPI().then(data => {
+    getDataFromAPI(getShareTokenUrl).then(data => {
         let tableBody = document.querySelector('#shareTokenTable tbody');
+        shareTokenData = data;
         data.forEach(token => {
             const row = document.createElement('tr');
             let goTime = new Date(token.ExpiresTime);
@@ -82,21 +84,18 @@ function handleUpdateBtn() {
         });
 
         console.log('选中的行数据:', selectedRows);
-        sendDataToGetShareToken("https://example.com/api", selectedRows);
+        sendDataToGetShareToken("https://example.com/api", selectedRows)
         // 在这里可以执行其他操作，例如将选中行的数据发送到服务器等
     });
 }
 
 async function getDataFromAPI(url) {
-    // todo))这里是构建一组虚拟的数据，发布之后把它删掉
-    return shareTokenData;
     try {
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error:', error.message);
         return null;

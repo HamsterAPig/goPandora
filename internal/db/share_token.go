@@ -94,6 +94,7 @@ func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.D
 	return nil
 }
 
+// GetAllShareToken 获取所有的ShareToken
 func GetAllShareToken() ([]ShareToken, error) {
 	var shareTokens []ShareToken
 	res := db.Find(&shareTokens)
@@ -101,4 +102,13 @@ func GetAllShareToken() ([]ShareToken, error) {
 		return shareTokens, fmt.Errorf("RecordNotFound")
 	}
 	return shareTokens, nil
+}
+
+// UpdateShareToken 更新ShareToken
+func UpdateShareToken(shareToken *ShareToken) error {
+	res := db.Save(shareToken)
+	if res.RowsAffected == 0 {
+		return fmt.Errorf("save failed")
+	}
+	return nil
 }

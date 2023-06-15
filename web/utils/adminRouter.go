@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"goPandora/config"
@@ -15,6 +16,11 @@ import (
 func AdminRouter() http.Handler {
 	router := gin.Default()
 	router.Delims("{[", "]}")
+
+	// 启用CORS中间件
+	// todo))调试的使用允许跨域请求，正式发布的时候禁用这个
+	router.Use(cors.Default())
+
 	// 注册自定义模板函数
 	router.SetFuncMap(template.FuncMap{
 		"safe": func(s string) template.HTML {
@@ -79,6 +85,27 @@ func AdminRouter() http.Handler {
 				return
 			}
 			c.JSON(http.StatusOK, accessToken)
+		})
+
+		apiV1Group.POST("/updateShareToken", func(c *gin.Context) {
+			var shareToken db.ShareToken
+			err := c.ShouldBind(&shareToken)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			err = db.UpdateShareToken(&shareToken)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "success",
+			})
 		})
 	}
 	return router
