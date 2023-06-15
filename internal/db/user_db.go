@@ -183,21 +183,14 @@ func GetTokenAndExpiryTimeByUUID(uuid string) (string, time.Time, error) {
 
 // GetTokenAndExpiryTimeByUserID 根据user id获取token与过期时间
 func GetTokenAndExpiryTimeByUserID(userID string) (string, time.Time, error) {
-	var userToken struct {
-		Token      string
-		ExpiryTime time.Time
-	}
-
-	result := db.Table("user_tokens").
-		Select("user_tokens.token, users.expiry_time").
-		Where("user_tokens.userID = ?", userID).
-		First(&userToken)
+	var user User
+	result := db.Where("user_id = ?", userID).First(&user)
 
 	err := db.Error
 	if result.RowsAffected == 0 {
-		return "", userToken.ExpiryTime, fmt.Errorf("RecordNotFound")
+		return "", user.ExpiryTime, fmt.Errorf("RecordNotFound")
 	}
-	return userToken.Token, userToken.ExpiryTime, err
+	return user.Token, user.ExpiryTime, err
 }
 
 // UpdateTokenByUUID 通过UUID更新token

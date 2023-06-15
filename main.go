@@ -95,6 +95,11 @@ func main() {
 		for _, item := range ret {
 			println(item)
 		}
+	} else if config.Conf.MainConfig.ShareTokenUpdate {
+		err = db.UpdateAllShareToken()
+		if err != nil {
+			logger.Fatal("db.UpdateAllShareToken failed", zap.Error(err))
+		}
 	} else {
 		web.ServerStart()
 	}
