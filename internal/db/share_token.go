@@ -136,3 +136,11 @@ func UpdateAllShareToken() error {
 	}
 	return nil
 }
+
+func ListAllShareToken() {
+	var shareTokens []ShareToken
+	db.Find(&shareTokens)
+	for _, shareToken := range shareTokens {
+		fmt.Printf("%+v\n", shareToken)
+	}
+}

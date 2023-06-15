@@ -95,6 +95,8 @@ func main() {
 		for _, item := range ret {
 			println(item)
 		}
+	} else if config.Conf.MainConfig.ShareTokenListAll {
+		db.ListAllShareToken()
 	} else if config.Conf.MainConfig.ShareTokenUpdate {
 		err = db.UpdateAllShareToken()
 		if err != nil {

@@ -23,6 +23,7 @@ type MainSection struct {
 	UserAddByFilePath string `mapstructure:"UserAddByFilePath"` // 通过文件批量添加用户
 	ShareTokenAddByID bool   //通过user table id添加用户
 	ShareTokenUpdate  bool
+	ShareTokenListAll bool
 	UserList          bool `mapstructure:"UserList"` // 显示所有用户信息
 	UserAdd           bool `mapstructure:"UserAdd"`  // 添加用户
 }
@@ -50,6 +51,7 @@ func ReadConfig() (*VariableConfig, error) {
 	pflag.String("debug-level", "info", "debug level")
 	pflag.Bool("share-token-add-id", false, "share token add id")
 	pflag.Bool("share-token-update", false, "share token update")
+	pflag.Bool("share-token-list-all", false, "share token list all")
 	pflag.Bool("user-add", false, "add user")
 	pflag.Bool("user-list", false, "list user")
 	pflag.Bool("enable_share_page_verify", true, "enable share page verify")
@@ -88,6 +90,7 @@ func ReadConfig() (*VariableConfig, error) {
 	ret.MainConfig.UserAdd = cmdViper.GetBool("user-add")
 	ret.MainConfig.ShareTokenAddByID = cmdViper.GetBool("share-token-add-id")
 	ret.MainConfig.ShareTokenUpdate = cmdViper.GetBool("share-token-update")
+	ret.MainConfig.ShareTokenListAll = cmdViper.GetBool("share-token-list-all")
 	// 如果未指定配置文件且未提供其他命令行参数，则显示帮助信息
 	if configFilePath == "" && !ret.MainConfig.UserAdd && !ret.MainConfig.UserList && ret.MainConfig.UserAddByFilePath == "" {
 		pflag.Usage()
