@@ -1,3 +1,5 @@
+let checkboxes; // 全局变量
+
 function renderShareTokenTable(data) {
     getDataFromAPI().then(data => {
         let tableBody = document.querySelector('#shareTokenTable tbody');
@@ -21,8 +23,7 @@ function renderShareTokenTable(data) {
 
 function bindSelectAllCheckbox() {
     const selectAllCheckbox = document.querySelector('#selectAllCheckbox');
-    const checkboxes = document.querySelectorAll('#shareTokenTable tbody input[type="checkbox"]');
-
+    checkboxes = document.querySelectorAll('#shareTokenTable tbody input[type="checkbox"]');
     selectAllCheckbox.addEventListener('change', function () {
         checkboxes.forEach(checkbox => {
             checkbox.checked = selectAllCheckbox.checked;
@@ -63,6 +64,25 @@ function handleSubmitForm() {
     });
 }
 
+function handleUpdateBtn() {
+    // 监听更新按钮的点击事件
+    const updateButton = document.querySelector('#updateButton');
+    updateButton.addEventListener('click', function () {
+        const selectedRows = [];
+        checkboxes = document.querySelectorAll('#shareTokenTable tbody input[type="checkbox"]');
+        checkboxes.forEach((checkbox, index) => {
+            if (checkbox.checked) {
+                const row = checkbox.closest('tr');
+                const rowData = shareTokenData[index];
+                selectedRows.push(rowData);
+            }
+        });
+
+        console.log('选中的行数据:', selectedRows);
+        // 在这里可以执行其他操作，例如将选中行的数据发送到服务器等
+    });
+}
+
 async function getDataFromAPI(url) {
     // todo))这里是构建一组虚拟的数据，发布之后把它删掉
     return shareTokenData;
@@ -80,5 +100,9 @@ async function getDataFromAPI(url) {
 }
 
 renderShareTokenTable();// 显示所有来自于json的数据
-bindSelectAllCheckbox();// 监听复选框
-handleSubmitForm(); // 提交表单
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("dom loaded");
+    bindSelectAllCheckbox();
+    handleSubmitForm(); // 提交表单
+    handleUpdateBtn();
+});
