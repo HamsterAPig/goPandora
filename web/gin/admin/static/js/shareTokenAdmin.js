@@ -5,12 +5,15 @@ function renderShareTokenTable(data) {
         let tableBody = document.querySelector('#shareTokenTable tbody');
         data.forEach(token => {
             const row = document.createElement('tr');
+            let goTime = new Date(token.ExpiresTime);
+            goTime.setSeconds(goTime.getSeconds() + 600);
+            console.log(goTime.toLocaleString());
             row.innerHTML = `
             <th scope="row"><input class="form-check-input me-1" type="checkbox" value=""></th>
             <td>${token.ID}</td>
             <td>${token.UserID}</td>
             <td>${token.UniqueName}</td>
-            <td>${token.ExpiresAt}</td>
+            <td>${goTime.toLocaleString()}</td>
             <td>${token.SiteLimit}</td>
             <td>${token.SK}</td>
             <td>${token.UpdateTime}</td>
@@ -79,6 +82,7 @@ function handleUpdateBtn() {
         });
 
         console.log('选中的行数据:', selectedRows);
+        sendDataToGetShareToken("https://example.com/api", selectedRows);
         // 在这里可以执行其他操作，例如将选中行的数据发送到服务器等
     });
 }
@@ -99,8 +103,42 @@ async function getDataFromAPI(url) {
     }
 }
 
+function sendDataToGetShareToken(url, data) {
+    let myHeaders = new Headers();
+    myHeaders.append("User-Agent", navigator.userAgent);
+    myHeaders.append("Accept", "*/*");
+    myHeaders.append("Cache-Control", "no-cache");
+    myHeaders.append("Host", "ai.fakeopen.com");
+    myHeaders.append("Connection", "keep-alive");
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+    let urlencoded = new URLSearchParams();
+    urlencoded.append("unique_name", data.UniqueName);
+    urlencoded.append("access_token", data.AssessToken);
+    urlencoded.append("expires_in", data.ExpiresTime);
+    urlencoded.append("site_limit", data.SiteLimit);
+
+    let requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: urlencoded,
+        redirect: 'follow'
+    };
+
+    return fetch(url, requestOptions)
+        .then(response => response.text())
+        .then(result => {
+            console.log(result);
+            return result;
+        })
+        .catch(error => {
+            console.log('error', error);
+            throw error;
+        });
+}
+
 renderShareTokenTable();// 显示所有来自于json的数据
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log("dom loaded");
     bindSelectAllCheckbox();
     handleSubmitForm(); // 提交表单

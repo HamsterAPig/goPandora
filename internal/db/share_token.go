@@ -11,14 +11,14 @@ import (
 )
 
 type ShareToken struct {
-	ID         uint `gorm:"primary_key:autoIncrement"`
-	UserID     string
-	UniqueName string
-	ExpiresAt  time.Time
-	SiteLimit  string
-	SK         string    `gorm:"unique"`
-	UpdateTime time.Time `gorm:"autoUpdateTime"`
-	Comment    string
+	ID          uint `gorm:"primary_key:autoIncrement"`
+	UserID      string
+	UniqueName  string
+	ExpiresTime int64
+	SiteLimit   string
+	SK          string    `gorm:"unique"`
+	UpdateTime  time.Time `gorm:"autoUpdateTime"`
+	Comment     string
 }
 
 type faseOpenShareToken struct {
