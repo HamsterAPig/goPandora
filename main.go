@@ -33,7 +33,7 @@ func main() {
 	}
 	defer db.CloseDB()
 	sqlite, _ := db.GetDB()
-	err = sqlite.AutoMigrate(&db.User{}, &db.UserToken{})
+	err = sqlite.AutoMigrate(&db.User{}, &db.UserToken{}, &db.ShareToken{})
 	if err != nil {
 		logger.Error("sqlite.AutoMigrate failed", zap.Error(err))
 		return
