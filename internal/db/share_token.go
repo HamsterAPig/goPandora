@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"goPandora/config"
 	"io"
 	"net/http"
 	"net/url"
@@ -56,7 +57,19 @@ func CreateShareToken(userID string, uniqueName string, ExpireTime time.Duration
 
 func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.Duration) error {
 	target := "https://ai.fakeopen.com/token/register"
-	client := &http.Client{}
+	var proxyURL *url.URL
+	var err error
+	if len(config.Conf.MainConfig.ProxyGroup) > 0 {
+		proxyURL, err = url.Parse(config.Conf.MainConfig.ProxyGroup[0])
+		if err != nil {
+			return fmt.Errorf("url.Parse failed: %w", err)
+		}
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		},
+	}
 
 	dataFrom := url.Values{}
 	dataFrom.Add("unique_name", shareTokenStruct.UniqueName)
