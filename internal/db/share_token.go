@@ -94,8 +94,11 @@ func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.D
 	return nil
 }
 
-func GetAllShareToken() []ShareToken {
+func GetAllShareToken() ([]ShareToken, error) {
 	var shareTokens []ShareToken
-	db.Find(&shareTokens)
-	return shareTokens
+	res := db.Find(&shareTokens)
+	if res.RowsAffected == 0 {
+		return shareTokens, fmt.Errorf("RecordNotFound")
+	}
+	return shareTokens, nil
 }

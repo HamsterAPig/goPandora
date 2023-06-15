@@ -58,7 +58,13 @@ func AdminRouter() http.Handler {
 	{
 		// 显示所有的ShareToken
 		apiV1Group.GET("/getAllShareToken", func(c *gin.Context) {
-			shareTokens := db.GetAllShareToken()
+			shareTokens, err := db.GetAllShareToken()
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
 			c.JSON(http.StatusOK, shareTokens)
 		})
 
