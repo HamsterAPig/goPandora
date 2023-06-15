@@ -37,6 +37,7 @@ type faseOpenShareToken struct {
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 
 func CreateShareToken(userID string, uniqueName string, ExpireTime time.Duration, SiteLimit string, comment string) error {
+	logger.Info("CreateShareToken", zap.String("userID", userID), zap.String("uniqueName", uniqueName), zap.Duration("ExpireTime", ExpireTime), zap.String("SiteLimit", SiteLimit), zap.String("comment", comment))
 	shareTokenValue := ShareToken{
 		UserID:     userID,
 		UniqueName: uniqueName,
@@ -59,6 +60,7 @@ func CreateShareToken(userID string, uniqueName string, ExpireTime time.Duration
 }
 
 func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.Duration) error {
+	logger.Info("getShareToken", zap.String("token", token))
 	target := "https://ai.fakeopen.com/token/register"
 	var proxyURL *url.URL
 	var err error
@@ -109,7 +111,7 @@ func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.D
 	shareTokenStruct.SK = data.TokenKey
 	shareTokenStruct.UniqueName = data.UniqueName
 	shareTokenStruct.ExpiresTimeAt = time.Unix(data.ExpireAt, 0)
-	shareTokenStruct.ExpiresTime = data.ExpireAt
+	shareTokenStruct.ExpiresTime = int64(ExpireTime * time.Second)
 	return nil
 }
 
