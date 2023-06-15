@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
-	"goPandora/config"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
@@ -99,20 +98,6 @@ func PandoraCloudRouter() http.Handler {
 
 	// 自动设置cookie以到达访问url自动登陆的页面
 	router.GET("/auth/login_auto/:uuid", autoLoginHandler)
-	if config.Conf.WebConfig.UserListPath != "" {
-		router.GET(config.Conf.WebConfig.UserListPath, func(c *gin.Context) {
-			ret := db.ListAllUser()
-			// 构建二维切片，每个元素是字符串分割后的结果
-			var data [][]string
-			for _, str := range ret {
-				parts := strings.Split(str, ",")
-				data = append(data, parts)
-			}
-			c.HTML(http.StatusOK, "list_user.html", gin.H{
-				"userList": data,
-			})
-		})
-	}
 
 	// 404
 	router.GET("/404.html", func(c *gin.Context) {

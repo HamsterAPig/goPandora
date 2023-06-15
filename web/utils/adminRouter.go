@@ -2,10 +2,8 @@ package utils
 
 import (
 	"encoding/json"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"goPandora/config"
 	"goPandora/internal/db"
 	logger "goPandora/internal/log"
 	"html/template"
@@ -16,10 +14,6 @@ import (
 func AdminRouter() http.Handler {
 	router := gin.Default()
 	router.Delims("{[", "]}")
-
-	// 启用CORS中间件
-	// todo))调试的使用允许跨域请求，正式发布的时候禁用这个
-	router.Use(cors.Default())
 
 	// 注册自定义模板函数
 	router.SetFuncMap(template.FuncMap{
@@ -47,7 +41,7 @@ func AdminRouter() http.Handler {
 	// 加载模板
 	router.LoadHTMLGlob("web/gin/admin/templates/*")
 
-	router.GET(config.Conf.WebConfig.UserListPath, func(c *gin.Context) {
+	router.GET("/list-user-all", func(c *gin.Context) {
 		ret := db.ListAllUser()
 		// 构建二维切片，每个元素是字符串分割后的结果
 		var data [][]string
