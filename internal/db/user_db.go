@@ -181,6 +181,25 @@ func GetTokenAndExpiryTimeByUUID(uuid string) (string, time.Time, error) {
 	return userToken.Token, userToken.ExpiryTime, err
 }
 
+// GetTokenAndExpiryTimeByUserID 根据user id获取token与过期时间
+func GetTokenAndExpiryTimeByUserID(userID string) (string, time.Time, error) {
+	var userToken struct {
+		Token      string
+		ExpiryTime time.Time
+	}
+
+	result := db.Table("user_tokens").
+		Select("user_tokens.token, users.expiry_time").
+		Where("user_tokens.userID = ?", userID).
+		First(&userToken)
+
+	err := db.Error
+	if result.RowsAffected == 0 {
+		return "", userToken.ExpiryTime, fmt.Errorf("RecordNotFound")
+	}
+	return userToken.Token, userToken.ExpiryTime, err
+}
+
 // UpdateTokenByUUID 通过UUID更新token
 func UpdateTokenByUUID(uuid string) (token string, err error) {
 	var user User
@@ -245,6 +264,7 @@ func GetAccessTokenByUserID(userID string) (accessToken string, err error) {
 	return user.Token, nil
 }
 
+// GetUserIDByID 根据ID获取用户ID
 func GetUserIDByID(ID int) (string, error) {
 	var user User
 	res := db.Where("ID = ?", ID).First(&user)
@@ -252,4 +272,22 @@ func GetUserIDByID(ID int) (string, error) {
 		return "", fmt.Errorf("RecordNotFound")
 	}
 	return user.UserID, nil
+}
+
+// UpdateTokenByUserID 通过用户ID刷新Token
+func UpdateTokenByUserID(userID string) (token string, err error) {
+	var user User
+	res := db.Where("user_id = ?", userID).First(&user)
+	if res.RowsAffected == 0 {
+		return "", fmt.Errorf("RecordNotFound")
+	}
+	if user.Sub != OpenAI {
+		return "", fmt.Errorf("not support sub method")
+	}
+	user.Token, user.RefreshToken, err = pandora.Auth0(user.Email, user.Password, "", "")
+	if err != nil {
+		return "", fmt.Errorf("pandora.Auth0 failed: %w", err)
+	}
+	db.Save(&user)
+	return user.Token, nil
 }

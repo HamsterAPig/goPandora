@@ -3,7 +3,9 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"goPandora/config"
+	logger "goPandora/internal/log"
 	"io"
 	"net/http"
 	"net/url"
@@ -12,14 +14,15 @@ import (
 )
 
 type ShareToken struct {
-	ID          uint `gorm:"primary_key:autoIncrement"`
-	UserID      string
-	UniqueName  string
-	ExpiresTime time.Time
-	SiteLimit   string
-	SK          string    `gorm:"unique"`
-	UpdateTime  time.Time `gorm:"autoUpdateTime"`
-	Comment     string
+	ID            uint `gorm:"primary_key:autoIncrement"`
+	UserID        string
+	UniqueName    string
+	ExpiresTime   int64
+	ExpiresTimeAt time.Time
+	SiteLimit     string
+	SK            string    `gorm:"unique"`
+	UpdateTime    time.Time `gorm:"autoUpdateTime"`
+	Comment       string
 }
 
 type faseOpenShareToken struct {
@@ -105,6 +108,31 @@ func getShareToken(shareTokenStruct *ShareToken, token string, ExpireTime time.D
 	}
 	shareTokenStruct.SK = data.TokenKey
 	shareTokenStruct.UniqueName = data.UniqueName
-	shareTokenStruct.ExpiresTime = time.Unix(int64(data.ExpireAt), 0)
+	shareTokenStruct.ExpiresTimeAt = time.Unix(data.ExpireAt, 0)
+	shareTokenStruct.ExpiresTime = data.ExpireAt
+	return nil
+}
+
+func UpdateAllShareToken() error {
+	var shareTokens []ShareToken
+	db.Find(&shareTokens)
+	for _, shareToken := range shareTokens {
+		_, expiryTime, err := GetTokenAndExpiryTimeByUserID(shareToken.UserID)
+		if err != nil {
+			return fmt.Errorf("GetTokenAndExpiryTimeByUserID failed: %w", err)
+		}
+		if expiryTime.Before(time.Now()) {
+			_, err = UpdateTokenByUserID(shareToken.UserID)
+			if err != nil {
+				return fmt.Errorf("UpdateTokenByUserID failed: %w", err)
+			}
+			err = CreateShareToken(shareToken.UserID, shareToken.UniqueName, time.Duration(shareToken.ExpiresTime)*time.Second, shareToken.SiteLimit, shareToken.Comment)
+			if err != nil {
+				return fmt.Errorf("update Share Token failed: %w", err)
+			}
+		} else {
+			logger.Info("Token is not expired, not update", zap.String("share token", shareToken.SK))
+		}
+	}
 	return nil
 }
