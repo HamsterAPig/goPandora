@@ -285,8 +285,16 @@ func UpdateTokenByUserID(userID string) (token string, err error) {
 	return user.Token, nil
 }
 
+// GetAllUserInfo 获取所有用户信息
 func GetAllUserInfo() ([]User, error) {
 	var users []User
 	db.Find(&users)
 	return users, nil
+}
+
+// GetAllAutoLoginInfo 获取所有自动登录信息
+func GetAllAutoLoginInfo() ([]UserToken, error) {
+	var userTokens []UserToken
+	db.Find(&userTokens)
+	return userTokens, nil
 }
