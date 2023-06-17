@@ -139,10 +139,18 @@ func UpdateAllShareToken() error {
 	return nil
 }
 
+// ListAllShareToken 在命令行那里显示用的
 func ListAllShareToken() {
 	var shareTokens []ShareToken
 	db.Find(&shareTokens)
 	for _, shareToken := range shareTokens {
 		fmt.Printf("%+v\n", shareToken)
 	}
+}
+
+// GetAllShareToken web调用接口
+func GetAllShareToken() ([]ShareToken, error) {
+	var shareTokens []ShareToken
+	db.Find(&shareTokens)
+	return shareTokens, nil
 }

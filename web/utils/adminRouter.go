@@ -66,7 +66,7 @@ func AdminRouter() http.Handler {
 			}
 			c.JSON(http.StatusOK, ret)
 		})
-		v1.GET("/share-token-list", func(c *gin.Context) {
+		v1.GET("/auto-login-list", func(c *gin.Context) {
 			ret, err := db.GetAllAutoLoginInfo()
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -74,6 +74,15 @@ func AdminRouter() http.Handler {
 				})
 			}
 			c.JSON(http.StatusOK, ret)
+		})
+		v1.GET("share-token-list", func(context *gin.Context) {
+			ret, err := db.GetAllShareToken()
+			if err != nil {
+				context.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+			}
+			context.JSON(http.StatusOK, ret)
 		})
 	}
 	return router
