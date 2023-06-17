@@ -284,3 +284,9 @@ func UpdateTokenByUserID(userID string) (token string, err error) {
 	db.Save(&user)
 	return user.Token, nil
 }
+
+func GetAllUserInfo() ([]User, error) {
+	var users []User
+	db.Find(&users)
+	return users, nil
+}

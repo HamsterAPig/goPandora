@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"goPandora/internal/db"
@@ -14,6 +15,7 @@ import (
 func AdminRouter() http.Handler {
 	router := gin.Default()
 	router.Delims("{[", "]}")
+	router.Use(cors.Default())
 
 	// 注册自定义模板函数
 	router.SetFuncMap(template.FuncMap{
@@ -53,5 +55,17 @@ func AdminRouter() http.Handler {
 			"userList": data,
 		})
 	})
+	v1 := router.Group("/api/v1")
+	{
+		v1.GET("/user-list", func(c *gin.Context) {
+			ret, err := db.GetAllUserInfo()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+			}
+			c.JSON(http.StatusOK, ret)
+		})
+	}
 	return router
 }
