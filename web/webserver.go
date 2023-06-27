@@ -29,7 +29,7 @@ func ServerStart() {
 		BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
 	}
 	// 设置是否启用分享页查看验证
-	utils.Param.EnableSharePageVerify = config.Conf.WebConfig.EnableSharePage
+	utils.Param.EnableSharePageVerify = config.Conf.MainConfig.EnableVerifySharePage
 	// 启动服务
 	pandoraCloud := &http.Server{
 		Addr:         config.Conf.MainConfig.Listen,
@@ -40,18 +40,6 @@ func ServerStart() {
 	g.Go(func() error {
 		return pandoraCloud.ListenAndServe()
 	})
-
-	if config.Conf.MainConfig.AdminListen != "" {
-		adminGo := &http.Server{
-			Addr:         config.Conf.MainConfig.AdminListen,
-			Handler:      utils.AdminRouter(),
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 10 * time.Second,
-		}
-		g.Go(func() error {
-			return adminGo.ListenAndServe()
-		})
-	}
 
 	if err := g.Wait(); err != nil {
 		logger.Fatal("ListenAndServe: ", zap.Error(err))

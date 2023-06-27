@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
-	"goPandora/internal/db"
+	"goPandora/config"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
 	"html/template"
@@ -319,30 +319,52 @@ func postLoginHandler(c *gin.Context) {
 // autoLoginHandler 在访问自动登陆页面时自动设置cookie
 func autoLoginHandler(c *gin.Context) {
 	uuid := c.Param("uuid")
-	Token, ExpiryTime, err := db.GetTokenAndExpiryTimeByUUID(uuid)
+	// 发送GET请求
+	resp, err := http.Get(config.Conf.MainConfig.Endpoint + "/api/v1/auto-login-infos/" + uuid)
 	if err != nil {
-		logger.Error("db.GetTokenAndExpiryTimeByUUID failed", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Unknown UUID",
-		})
+		c.String(http.StatusInternalServerError, "发送Get请求失败")
+		c.Abort()
 		return
 	}
-	if ExpiryTime.Before(time.Now()) {
-		c.String(http.StatusFound, "正在自动更新Token，请稍后...")
-		_, err := db.UpdateTokenByUUID(uuid)
-		if err != nil {
-			c.String(http.StatusBadRequest, "\n更新Token失败")
-			logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
-			return
-		}
-		c.String(http.StatusOK, "\n更新Token成功！")
+	defer resp.Body.Close()
+
+	// 读取响应内容
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("读取响应内容失败", zap.Error(err))
+		c.String(http.StatusInternalServerError, "\n读取响应内容失败")
+		return
 	}
 
+	// 解析JSON数据为map
+	var responseData map[string]interface{}
+	err = json.Unmarshal(body, &responseData)
+	if err != nil {
+		logger.Error("解析JSON数据失败", zap.Error(err))
+		c.String(http.StatusInternalServerError, "\n解析JSON数据失败")
+		return
+	}
+
+	// 提取Token值
+	token, ok := responseData["data"].(map[string]interface{})["Token"].(string)
+	if !ok {
+		logger.Error("提取Token值失败", zap.Error(err))
+		c.String(http.StatusInternalServerError, "\n"+"提取Token值失败")
+		return
+	}
+	payload, err := pandora.CheckAccessToken(token)
+	if err != nil {
+		logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
+		c.String(http.StatusInternalServerError, "\n"+"pandora.GetTokenByRefreshToken failed")
+		return
+	}
+	exp, _ := payload["exp"].(float64)
+	expires := time.Unix(int64(exp), 0)
 	// 设置cookie
 	cookie := &http.Cookie{
 		Name:     "access-token",
-		Value:    Token,
-		Expires:  ExpiryTime,
+		Value:    token,
+		Expires:  expires,
 		Path:     "/",
 		Domain:   "",
 		Secure:   false,
@@ -351,7 +373,7 @@ func autoLoginHandler(c *gin.Context) {
 	}
 	http.SetCookie(c.Writer, cookie)
 	c.Redirect(http.StatusFound, "/")
-	c.String(http.StatusOK, "若网页并没有跳转，请手动刷新本页...")
+	c.String(http.StatusOK, "\n若网页并没有跳转，请手动刷新本页...")
 }
 
 // userInfoHandler 获取当前用户的信息
