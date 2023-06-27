@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"goPandora/config"
@@ -21,6 +22,10 @@ func ServerStart() {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
+	}
+	if config.Conf.MainConfig.EnableDayAPIPrefix {
+		serializedDate := time.Now().Format("20060102")
+		config.Conf.MainConfig.ChatGPTAPIPrefix = fmt.Sprintf("https://ai-%s.fakeopen.com", serializedDate)
 	}
 
 	utils.Param = utils.PandoraParam{

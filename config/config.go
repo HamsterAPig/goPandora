@@ -16,6 +16,7 @@ type MainSection struct {
 	ChatGPTAPIPrefix      string `mapstructure:"ChatGPT_API_PREFIX"`       // GhatGPT网址前缀
 	Endpoint              string `mapstructure:"endpoint"`                 // 后端服务器地址
 	EnableVerifySharePage bool   `mapstructure:"enable-verify-share-page"` // 是否启用分享页验证
+	EnableDayAPIPrefix    bool   `mapstructure:"enable-day-api-prefix"`    // 启用日抛域名支持
 }
 
 var Conf = new(VariableConfig)
@@ -31,6 +32,7 @@ func ReadConfig() (*VariableConfig, error) {
 	pflag.String("debug-level", "info", "debug level")
 	pflag.StringP("endpoint", "e", "http://127.0.0.1:8899", "endpoint")
 	pflag.Bool("enable-verify-share-page", true, "enable verify share page")
+	pflag.Bool("enable-day-api-prefix", true, "enable day api prefix")
 	pflag.Parse()
 
 	// 初始化Viperr
