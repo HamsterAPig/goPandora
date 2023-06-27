@@ -200,6 +200,7 @@ func shareDetailHandler(c *gin.Context) {
 		_, _, _, _, err := getUserInfo(c)
 		if err != nil {
 			c.Redirect(http.StatusFound, "/auth/login?next=%2Fshare%2F"+c.Param("shareID"))
+			c.Abort()
 			return
 		}
 	}
@@ -333,6 +334,7 @@ func autoLoginHandler(c *gin.Context) {
 	if err != nil {
 		logger.Error("读取响应内容失败", zap.Error(err))
 		c.String(http.StatusInternalServerError, "\n读取响应内容失败")
+		c.Abort()
 		return
 	}
 
@@ -342,6 +344,7 @@ func autoLoginHandler(c *gin.Context) {
 	if err != nil {
 		logger.Error("解析JSON数据失败", zap.Error(err))
 		c.String(http.StatusInternalServerError, "\n解析JSON数据失败")
+		c.Abort()
 		return
 	}
 
@@ -350,12 +353,14 @@ func autoLoginHandler(c *gin.Context) {
 	if !ok {
 		logger.Error("提取Token值失败", zap.Error(err))
 		c.String(http.StatusInternalServerError, "\n"+"提取Token值失败")
+		c.Abort()
 		return
 	}
 	payload, err := pandora.CheckAccessToken(token)
 	if err != nil {
 		logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
 		c.String(http.StatusInternalServerError, "\n"+"pandora.GetTokenByRefreshToken failed")
+		c.Abort()
 		return
 	}
 	exp, _ := payload["exp"].(float64)
@@ -512,12 +517,13 @@ func sessionAPIHandler(c *gin.Context) {
 }
 
 // chatHandler 主入口函数
-func chatHandler(ctx *gin.Context) {
-	conversationID := ctx.Param("chatID")
+func chatHandler(c *gin.Context) {
+	conversationID := c.Param("chatID")
 	// 解析、验证token
-	userID, email, _, _, err := getUserInfo(ctx)
+	userID, email, _, _, err := getUserInfo(c)
 	if err != nil { // 如果验证的token出现错误则跳转到/login
-		ctx.Redirect(http.StatusFound, "/login")
+		c.Redirect(http.StatusFound, "/login")
+		c.Abort()
 		return
 	}
 
@@ -561,7 +567,7 @@ func chatHandler(ctx *gin.Context) {
 	}
 
 	// 返回渲染好的模板
-	ctx.HTML(http.StatusOK, templateHtml, gin.H{
+	c.HTML(http.StatusOK, templateHtml, gin.H{
 		"pandora_sentry": Param.PandoraSentry,
 		"api_prefix":     Param.ApiPrefix,
 		"props":          props,
