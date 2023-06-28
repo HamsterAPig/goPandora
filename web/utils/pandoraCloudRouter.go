@@ -321,7 +321,7 @@ func postLoginHandler(c *gin.Context) {
 func autoLoginHandler(c *gin.Context) {
 	uuid := c.Param("uuid")
 	// 发送GET请求
-	resp, err := http.Get(config.Conf.MainConfig.Endpoint + "/api/v1/auto-login-infos/" + uuid)
+	resp, err := http.Get(config.Conf.MainConfig.Endpoint + uuid)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "发送Get请求失败")
 		c.Abort()
