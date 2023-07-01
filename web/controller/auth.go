@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"goPandora/config"
@@ -10,6 +11,7 @@ import (
 	"goPandora/web/model"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -134,4 +136,60 @@ func AutoLoginHandler(c *gin.Context) {
 	http.SetCookie(c.Writer, cookie)
 	c.Redirect(http.StatusFound, "/")
 	c.String(http.StatusOK, "\n若网页并没有跳转，请手动刷新本页...")
+}
+
+func AuthLoginShareToken(c *gin.Context) {
+	shareToken := c.Param("share_token")
+	if shareToken != "" && strings.HasPrefix(shareToken, "fk-") {
+		info, err := fetchShareTokenInfo(shareToken)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+		// 设置cookie
+		cookie := &http.Cookie{
+			Name:     "access-token",
+			Value:    shareToken,
+			Expires:  time.Unix(info.ExpireAt, 0),
+			Path:     "/",
+			Domain:   "",
+			Secure:   false,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		}
+		http.SetCookie(c.Writer, cookie)
+		c.Redirect(http.StatusFound, "/")
+		c.String(http.StatusOK, "\n若网页并没有跳转，请手动刷新本页...")
+	}
+}
+
+func fetchShareTokenInfo(token string) (model.ShareTokenResponse, error) {
+	var shareInfo model.ShareTokenResponse
+	shareInfo.ExpireAt = -1
+
+	resp, err := http.Get(model.Param.ApiPrefix + "/token/info/" + token)
+	if err != nil {
+		return shareInfo, fmt.Errorf("获取token信息失败: %s", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return shareInfo, fmt.Errorf("share token ot found or expired")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return shareInfo, fmt.Errorf("failed to fetch share token info")
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return shareInfo, fmt.Errorf("read body error: %s", err)
+	}
+	err = json.Unmarshal([]byte(body), &shareInfo)
+	if err != nil {
+		return shareInfo, fmt.Errorf("json unmarshal error: %s", err)
+	}
+	return shareInfo, nil
 }

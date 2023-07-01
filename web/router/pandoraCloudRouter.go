@@ -100,6 +100,7 @@ func PandoraCloudRouter() http.Handler {
 		auth.Any("/login", controller.AuthLoginHandler)
 		auth.GET("/logout", controller.AuthLogoutHandler)
 		auth.GET("/login_auto/:uuid", controller.AutoLoginHandler)
+		auth.GET("/login_share_token/:share_token", controller.AuthLoginShareToken)
 	}
 	return router
 }

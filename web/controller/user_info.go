@@ -5,6 +5,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"goPandora/internal/pandora"
 	"net/http"
+	"strings"
 )
 
 // getUserInfo 从token获取用户信息
@@ -13,7 +14,15 @@ func getUserInfo(c *gin.Context) (string, string, string, jwt.MapClaims, error) 
 	if err != nil {
 		return "", "", "", nil, err
 	}
-	return pandora.CheckUserInfo(accessToken)
+	if strings.HasPrefix(accessToken, "fk-") {
+		info, err := fetchShareTokenInfo(accessToken)
+		if nil != err {
+			return "", "", "", nil, err
+		}
+		return info.UserID, info.Email, accessToken, jwt.MapClaims{"exp": float64(info.ExpireAt)}, nil
+	} else {
+		return pandora.CheckUserInfo(accessToken)
+	}
 }
 
 // UserInfoHandler 获取当前用户的信息
