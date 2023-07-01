@@ -7,7 +7,7 @@ import (
 	"goPandora/config"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
-	"goPandora/web/router"
+	"goPandora/web/model"
 	"io"
 	"net/http"
 	"time"
@@ -61,7 +61,7 @@ func AuthLoginHandler(c *gin.Context) {
 	default:
 		next := c.Query("next")
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"api_prefix": router.Param.ApiPrefix,
+			"api_prefix": model.Param.ApiPrefix,
 			"next":       next,
 		})
 	}

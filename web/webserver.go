@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"goPandora/config"
 	logger "goPandora/internal/log"
+	"goPandora/web/model"
 	"goPandora/web/router"
 	"golang.org/x/sync/errgroup"
 	"net/http"
@@ -28,13 +29,13 @@ func ServerStart() {
 		config.Conf.MainConfig.ChatGPTAPIPrefix = fmt.Sprintf("https://ai-%s.fakeopen.com", serializedDate)
 	}
 
-	router.Param = router.PandoraParam{
+	model.Param = model.PandoraParam{
 		ApiPrefix:     config.Conf.MainConfig.ChatGPTAPIPrefix,
 		PandoraSentry: false,
 		BuildId:       "cx416mT2Lb0ZTj5FxFg1l",
 	}
 	// 设置是否启用分享页查看验证
-	router.Param.EnableSharePageVerify = config.Conf.MainConfig.EnableVerifySharePage
+	model.Param.EnableSharePageVerify = config.Conf.MainConfig.EnableVerifySharePage
 	// 启动服务
 	pandoraCloud := &http.Server{
 		Addr:         config.Conf.MainConfig.Listen,
