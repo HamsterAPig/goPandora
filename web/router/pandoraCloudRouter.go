@@ -1,4 +1,4 @@
-package utils
+package router
 
 import (
 	"encoding/json"
@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
-	"goPandora/config"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
+	"goPandora/web/controller"
 	"html/template"
 	"io"
 	"net/http"
@@ -79,26 +79,6 @@ func PandoraCloudRouter() http.Handler {
 	router.GET("/c", chatHandler)
 	router.GET("/c/:chatID", chatHandler)
 
-	router.GET("/login", func(context *gin.Context) {
-		context.Redirect(http.StatusFound, "/auth/login")
-	})
-	router.GET("/auth/login", func(context *gin.Context) {
-		next := context.Query("next")
-		context.HTML(http.StatusOK, "login.html", gin.H{
-			"api_prefix": Param.ApiPrefix,
-			"next":       next,
-		})
-	})
-	router.POST("/auth/login_token", postTokenHandler)
-	router.POST("/auth/login", postLoginHandler)
-	router.GET("/auth/logout", func(context *gin.Context) {
-		context.SetCookie("access-token", "", -1, "/", "", false, true)
-		context.Redirect(http.StatusFound, "/auth/login")
-	})
-
-	// 自动设置cookie以到达访问url自动登陆的页面
-	router.GET("/auth/login_auto/:uuid", autoLoginHandler)
-
 	// 404
 	router.GET("/404.html", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "404.html", gin.H{
@@ -113,6 +93,17 @@ func PandoraCloudRouter() http.Handler {
 	router.GET("/share/:shareID/continue", func(context *gin.Context) {
 		context.Redirect(http.StatusPermanentRedirect, url.PathEscape(context.Param("/share/"+"shareID")))
 	})
+
+	router.GET("/login", func(context *gin.Context) {
+		context.Redirect(http.StatusFound, "/auth/login")
+	})
+	auth := router.Group("/auth")
+	{
+		auth.POST("/login_token", postTokenHandler)
+		auth.Any("/login", controller.AuthLoginHandler)
+		auth.GET("/logout", controller.AuthLogoutHandler)
+		auth.GET("/login_auto/:uuid", controller.AutoLoginHandler)
+	}
 	return router
 }
 
@@ -270,115 +261,6 @@ func fetchShareDetail(shareID string) (retJson map[string]interface{}, err error
 		return nil, fmt.Errorf("json unmarshal error: %s", err)
 	}
 	return data, nil
-}
-
-// postLoginHandler 官方账号密码登陆
-func postLoginHandler(c *gin.Context) {
-	userName := c.PostForm("username")
-	password := c.PostForm("password")
-	//mfaCode := c.PostForm("mfa_code")
-	nextUrl := c.PostForm("next")
-
-	if userName != "" && password != "" {
-		accessToken, _, err := pandora.Auth0(userName, password, "", "")
-		if err != nil {
-			c.HTML(http.StatusOK, "login.html", gin.H{
-				"username": userName,
-				"error":    err.Error(),
-			})
-		}
-		payload, err := pandora.CheckAccessToken(accessToken)
-		if err != nil {
-			c.HTML(http.StatusOK, "login.html", gin.H{
-				"username": userName,
-				"error":    err.Error(),
-			})
-		}
-		// 检查token的过期时间
-		exp, _ := payload["exp"].(float64)
-		expires := time.Unix(int64(exp), 0)
-
-		// 设置cookie
-		cookie := &http.Cookie{
-			Name:     "access-token",
-			Value:    accessToken,
-			Expires:  expires,
-			Path:     "/",
-			Domain:   "",
-			Secure:   false,
-			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
-		}
-		http.SetCookie(c.Writer, cookie)
-		if nextUrl == "" {
-			nextUrl = "/"
-		}
-		c.Redirect(http.StatusFound, nextUrl)
-	}
-}
-
-// autoLoginHandler 在访问自动登陆页面时自动设置cookie
-func autoLoginHandler(c *gin.Context) {
-	uuid := c.Param("uuid")
-	// 发送GET请求
-	resp, err := http.Get(config.Conf.MainConfig.Endpoint + uuid)
-	if err != nil {
-		c.String(http.StatusInternalServerError, "发送Get请求失败")
-		c.Abort()
-		return
-	}
-	defer resp.Body.Close()
-
-	// 读取响应内容
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.Error("读取响应内容失败", zap.Error(err))
-		c.String(http.StatusInternalServerError, "\n读取响应内容失败")
-		c.Abort()
-		return
-	}
-
-	// 解析JSON数据为map
-	var responseData map[string]interface{}
-	err = json.Unmarshal(body, &responseData)
-	if err != nil {
-		logger.Error("解析JSON数据失败", zap.Error(err))
-		c.String(http.StatusInternalServerError, "\n解析JSON数据失败")
-		c.Abort()
-		return
-	}
-
-	// 提取Token值
-	token, ok := responseData["data"].(map[string]interface{})["Token"].(string)
-	if !ok {
-		logger.Error("提取Token值失败", zap.Error(err))
-		c.String(http.StatusInternalServerError, "\n"+"提取Token值失败")
-		c.Abort()
-		return
-	}
-	payload, err := pandora.CheckAccessToken(token)
-	if err != nil {
-		logger.Error("pandora.GetTokenByRefreshToken failed", zap.Error(err))
-		c.String(http.StatusInternalServerError, "\n"+"pandora.GetTokenByRefreshToken failed")
-		c.Abort()
-		return
-	}
-	exp, _ := payload["exp"].(float64)
-	expires := time.Unix(int64(exp), 0)
-	// 设置cookie
-	cookie := &http.Cookie{
-		Name:     "access-token",
-		Value:    token,
-		Expires:  expires,
-		Path:     "/",
-		Domain:   "",
-		Secure:   false,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-	http.SetCookie(c.Writer, cookie)
-	c.Redirect(http.StatusFound, "/")
-	c.String(http.StatusOK, "\n若网页并没有跳转，请手动刷新本页...")
 }
 
 // userInfoHandler 获取当前用户的信息
