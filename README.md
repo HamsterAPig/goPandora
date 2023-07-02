@@ -13,34 +13,27 @@ Pandora项目地址：https://github.com/pengzhile/pandora
 
 
 
-## 命令行参数
+## 配置选项
 
-* -s: 服务器监听地址，可以是"127.0.0.1:port"的形式，也可以是":port"的形式
-* -p: socks代理地址
-* --CHATGPT_API_PREFIX: 配置ChatGPT的代理服务器地址，eg --CHATGPT_API_PREFIX=https://ai.fakeopen.com
-
-### 配置文件
-
-> 注意：如果通过-c指定了配置文件，那么命令行的相关参数将失效。也即配置文件的优先级大于命令行的优先级
+- `listen` (字符串): 监听地址。
+- `debug-level` (字符串): 日志等级。
+- `ChatGPT_API_PREFIX` (字符串): GhatGPT网址前缀。
+- `endpoint` (字符串): 后端服务器地址。
+- `enable-verify-share-page` (布尔值): 是否启用分享页验证。
+- `enable-day-api-prefix` (布尔值): 启用日抛域名支持。
 
 ```yml
 main:
-  listen: 127.0.0.1:8080
-  proxys:
-    - http://127.0.0.1:8083
-    - http://127.0.0.1:8081
-    - http://127.0.0.1:8082
-  database: ./data.db
-  debug-level: info
-  ChatGPT_API_PREFIX: https://ai.fakeopen.com
+  listen: ":8080"
+  debug-level: "info"
+  ChatGPT_API_PREFIX: "https://ai.fakeopen.com"
+  endpoint: "http://127.0.0.1:8899"
+  enable-verify-share-page: true
+  enable-day-api-prefix: true
 
-web:
-  WebUserListPath: /list-all
-  EnableSharePageVerify: true
-  WebSiteDomainName: http://127.0.0.1:8080
 ```
 
-并且需要注意的是，如果你配置了`WebUserListPath`，请保护好这个接口，这个接口没有做任何权限验证。你可以使用类似于`Nginx Basic Auth`之类的接口进行权限验证
+
 
 ## Nginx 前置代理配置
 
@@ -68,16 +61,5 @@ web:
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
-```
-
-## 拼接自动登陆链接
-
-使用`--user-list`这个命令选项只会输出用户的`uuid`、`邮箱`、`备注`
-
-还需要自己手动拼接自动登陆链接，目前相关功能还未完善，这里提供一个Linux中Shell中`awk`命令的方式自动拼接，假设你的域名是`http://127.0.0.1`则
-
-```shell
-./goPandora --user-list | awk -F' ' '{ printf "http://127.0.0.1/auth/login_auto/%s %s %s\n", $4, $2, $6 }'
-
 ```
 
