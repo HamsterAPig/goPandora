@@ -7,7 +7,8 @@ import (
 )
 
 type VariableConfig struct {
-	MainConfig MainSection `mapstructure:"main"`
+	MainConfig       MainSection       `mapstructure:"main"`
+	CloudflareConfig CloudflareSection `mapstructure:"cloudflare"`
 }
 
 type MainSection struct {
@@ -17,6 +18,12 @@ type MainSection struct {
 	Endpoint              string `mapstructure:"endpoint"`                 // 后端服务器地址
 	EnableVerifySharePage bool   `mapstructure:"enable-verify-share-page"` // 是否启用分享页验证
 	EnableDayAPIPrefix    bool   `mapstructure:"enable-day-api-prefix"`    // 启用日抛域名支持
+}
+type CloudflareSection struct {
+	Email  string `mapstructure:"email"`
+	APIKey string `mapstructure:"api_key"`
+	ZoneID string `mapstructure:"zone_id"`
+	Notes  string `mapstructure:"notes"`
 }
 
 var Conf = new(VariableConfig)

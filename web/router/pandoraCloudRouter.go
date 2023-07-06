@@ -55,6 +55,7 @@ func PandoraCloudRouter() http.Handler {
 	router.StaticFile("/favicon.ico", "web/gin/static/favicon-16x16.png")
 
 	// 404
+	router.NoRoute(controller.NotFoundHandler)
 	router.GET("/404.html", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "404.html", gin.H{
 			"api_prefix":     model.Param.ApiPrefix,

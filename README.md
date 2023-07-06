@@ -15,12 +15,21 @@ Pandora项目地址：https://github.com/pengzhile/pandora
 
 ## 配置选项
 
+### main
 - `listen` (字符串): 监听地址。
 - `debug-level` (字符串): 日志等级。
 - `ChatGPT_API_PREFIX` (字符串): GhatGPT网址前缀。
 - `endpoint` (字符串): 后端服务器地址。
 - `enable-verify-share-page` (布尔值): 是否启用分享页验证。
 - `enable-day-api-prefix` (布尔值): 启用日抛域名支持。
+
+### cloudflare
+> 启用在有IP触发404之后，自动在cloudflare上面将IP拉黑
+
+- `email`: cloudflare账号的邮箱
+- `api_key`: api_key，在cloudflare官网进入网站概述页面的右下角
+- `zone_id`: 同上
+- `notes`: 添加block规则时候的备注
 
 ```yml
 main:
@@ -30,7 +39,11 @@ main:
   endpoint: "http://127.0.0.1:8899"
   enable-verify-share-page: true
   enable-day-api-prefix: true
-
+cloudflare:
+  email: your cloudflare email
+  api_key: your api_key
+  zone_id: your zone_id
+  notes: blocked ip from goPandora
 ```
 
 
