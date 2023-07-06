@@ -34,7 +34,7 @@ func NotFoundHandler(c *gin.Context) {
 					Value:  clientIP,
 				},
 				Mode:  "block",
-				Notes: notes,
+				Notes: notes + "\n" + c.Request.URL.String(),
 			}
 			jsonData, err := json.Marshal(data)
 			if err != nil {
