@@ -135,7 +135,7 @@ func AutoLoginHandler(c *gin.Context) {
 	}
 	http.SetCookie(c.Writer, cookie)
 	c.Redirect(http.StatusFound, "/")
-	c.String(http.StatusOK, "\n若网页并没有跳转，请手动刷新本页...")
+	c.String(http.StatusFound, "\n若网页并没有跳转，请手动刷新本页...")
 }
 
 func AuthLoginShareToken(c *gin.Context) {

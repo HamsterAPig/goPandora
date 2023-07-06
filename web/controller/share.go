@@ -104,13 +104,15 @@ func ShareContinueHandler(c *gin.Context) {
 	if err != nil {
 		nextURL := fmt.Sprintf("/share/%s/continue", url.PathEscape(c.Param("shareID")))
 		loginURL := fmt.Sprintf("/auth/login?next=%s", url.PathEscape(nextURL))
-		c.JSON(http.StatusForbidden, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"pageProps": gin.H{
 				"__N_REDIRECT":        loginURL,
-				"__N_REDIRECT_STATUS": true,
+				"__N_REDIRECT_STATUS": http.StatusTemporaryRedirect,
 			},
 			"__N_SSP": true,
 		})
+		c.Abort()
+		return
 	}
 	shareID := c.Param("shareID")
 	shareDetail, err := fetchShareDetail(shareID)
