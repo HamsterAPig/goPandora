@@ -95,7 +95,7 @@ func PostTokenHandler(c *gin.Context) {
 			SameSite: http.SameSiteLaxMode,
 		}
 		http.SetCookie(c.Writer, cookie)
-		c.JSON(http.StatusOK, data)
+		c.JSON(http.StatusFound, data)
 		c.Redirect(http.StatusFound, next)
 	} else { // 错误的access-token处理
 		data := gin.H{"code": 1, "msg": "access token is null"}
