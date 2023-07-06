@@ -2,8 +2,11 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"goPandora/internal/pandora"
+	"goPandora/web/model"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -58,7 +61,15 @@ func PostTokenHandler(c *gin.Context) {
 	accessToken := c.PostForm("access_token")
 	if "" != accessToken {
 		// 检查access-token
-		payload, err := pandora.CheckAccessToken(accessToken)
+		var payload jwt.MapClaims
+		var err error
+		if strings.HasPrefix(accessToken, "fk-") {
+			var info model.ShareTokenResponse
+			info, err = fetchShareTokenInfo(accessToken)
+			payload = jwt.MapClaims{"exp": float64(info.ExpireAt)}
+		} else {
+			payload, err = pandora.CheckAccessToken(accessToken)
+		}
 		if nil != err {
 			data := gin.H{"code": 1, "msg": err.Error()}
 			c.JSON(http.StatusInternalServerError, data)
