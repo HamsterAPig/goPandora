@@ -14,7 +14,9 @@ import (
 
 func NotFoundHandler(c *gin.Context) {
 	clientIP := c.ClientIP()
-	if config.Conf.CloudflareConfig.APIKey != "" {
+	if c.Request.URL.String() == "/sitemap.xml" {
+		c.Redirect(http.StatusFound, "/")
+	} else if config.Conf.CloudflareConfig.APIKey != "" {
 		go func() {
 			targetUrl := fmt.Sprintf("https://api.cloudflare.com/client/v4/zones/%s/firewall/access_rules/rules", config.Conf.CloudflareConfig.ZoneID)
 			var notes string
