@@ -15,6 +15,8 @@ func SessionAPIHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
+		c.Abort()
+		return
 	}
 
 	// 序列化payload的过期时间
@@ -23,6 +25,8 @@ func SessionAPIHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid token because exp is not float64",
 		})
+		c.Abort()
+		return
 	}
 	expTimestamp := time.Unix(int64(exp), 0).Format("2006-01-02T15:04:05")
 
@@ -58,6 +62,8 @@ func PostTokenHandler(c *gin.Context) {
 		if nil != err {
 			data := gin.H{"code": 1, "msg": err.Error()}
 			c.JSON(http.StatusInternalServerError, data)
+			c.Abort()
+			return
 		}
 
 		// 检查token的过期时间

@@ -31,6 +31,8 @@ func AuthLoginHandler(c *gin.Context) {
 					"username": userName,
 					"error":    err.Error(),
 				})
+				c.Abort()
+				return
 			}
 			payload, err := pandora.CheckAccessToken(accessToken)
 			if err != nil {
@@ -38,6 +40,8 @@ func AuthLoginHandler(c *gin.Context) {
 					"username": userName,
 					"error":    err.Error(),
 				})
+				c.Abort()
+				return
 			}
 			// 检查token的过期时间
 			exp, _ := payload["exp"].(float64)
