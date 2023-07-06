@@ -11,8 +11,10 @@ import (
 
 // ChatHandler 主入口函数
 func ChatHandler(c *gin.Context) {
-	serializedDate := time.Now().Format("20060102")
-	config.Conf.MainConfig.ChatGPTAPIPrefix = fmt.Sprintf("https://ai-%s.fakeopen.com", serializedDate)
+	if config.Conf.MainConfig.EnableDayAPIPrefix {
+		serializedDate := time.Now().Format("20060102")
+		model.Param.ApiPrefix = fmt.Sprintf("https://ai-%s.fakeopen.com", serializedDate)
+	}
 	conversationID := c.Param("chatID")
 	// 解析、验证token
 	userID, email, _, _, err := getUserInfo(c)
