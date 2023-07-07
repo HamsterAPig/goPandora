@@ -12,9 +12,16 @@ import (
 	"net/http"
 )
 
+var validURLs = []string{
+	"/sitemap.xml",
+	"/robots.txt",
+	"/.well-known/security.txt",
+}
+
 func NotFoundHandler(c *gin.Context) {
 	clientIP := c.ClientIP()
-	if c.Request.URL.String() == "/sitemap.xml" {
+	requestURL := c.Request.URL.String()
+	if contains(validURLs, requestURL) {
 		c.Redirect(http.StatusFound, "/")
 	} else if config.Conf.CloudflareConfig.APIKey != "" {
 		go func() {
@@ -75,12 +82,23 @@ func NotFoundHandler(c *gin.Context) {
 		}()
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "not found, and you have been blocked!",
+			"uri":   c.Request.URL.String(),
 			"ip":    clientIP,
 		})
 	} else {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "not found",
+			"uri":   c.Request.URL.String(),
 			"ip":    clientIP,
 		})
 	}
+}
+
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }

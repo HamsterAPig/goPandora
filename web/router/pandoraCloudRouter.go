@@ -84,6 +84,11 @@ func PandoraCloudRouter() http.Handler {
 		_next.GET(fmt.Sprintf("/%s/c/:conversationID", model.Param.BuildId), controller.UserInfoHandler)
 		_next.GET(fmt.Sprintf("/%s/share/:shareID", model.Param.BuildId), controller.ShareInfoHandler)
 		_next.GET(fmt.Sprintf("/%s/share/:shareID/continue.json", model.Param.BuildId), controller.ShareContinueHandler)
+		_next.GET(fmt.Sprintf("/%s/auth/login.json", model.Param.BuildId), func(c *gin.Context) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status": "not found",
+			})
+		})
 	}
 
 	share := router.Group("/share")
