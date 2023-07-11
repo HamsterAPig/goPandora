@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"goPandora/config"
+	"goPandora/controller/model"
 	logger "goPandora/internal/log"
-	"goPandora/web/model"
 	"net/http"
 	"time"
 )
