@@ -10,6 +10,7 @@ import (
 	logger "goPandora/internal/log"
 	"goPandora/web/model"
 	"net/http"
+	"time"
 )
 
 var validURLs = []string{
@@ -41,7 +42,7 @@ func NotFoundHandler(c *gin.Context) {
 					Value:  clientIP,
 				},
 				Mode:  "block",
-				Notes: notes + " " + c.Request.URL.String(),
+				Notes: notes + " " + time.Now().Format("2006-01-02 15:04:05") + " " + c.Request.URL.String(),
 			}
 			jsonData, err := json.Marshal(data)
 			if err != nil {
