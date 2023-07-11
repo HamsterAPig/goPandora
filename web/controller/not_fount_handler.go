@@ -74,7 +74,7 @@ func NotFoundHandler(c *gin.Context) {
 			}
 			defer response.Body.Close()
 			if response.StatusCode != http.StatusOK {
-				logger.Error("response.StatusCode != http.StatusOK", zap.Error(err))
+				logger.Error("response.StatusCode != http.StatusOK", zap.Error(err), zap.String("ip", clientIP))
 				c.Abort()
 				return
 			}
