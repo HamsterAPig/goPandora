@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"goPandora/config"
-	model2 "goPandora/controller/model"
 	logger "goPandora/internal/log"
 	"goPandora/internal/pandora"
+	"goPandora/model"
 	"io"
 	"net/http"
 	"strings"
@@ -67,7 +67,7 @@ func AuthLoginHandler(c *gin.Context) {
 	default:
 		next := c.Query("next")
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"api_prefix": model2.Param.ApiPrefix,
+			"api_prefix": model.Param.ApiPrefix,
 			"next":       next,
 		})
 	}
@@ -171,11 +171,11 @@ func AuthLoginShareToken(c *gin.Context) {
 	}
 }
 
-func fetchShareTokenInfo(token string) (model2.ShareTokenResponse, error) {
-	var shareInfo model2.ShareTokenResponse
+func fetchShareTokenInfo(token string) (model.ShareTokenResponse, error) {
+	var shareInfo model.ShareTokenResponse
 	shareInfo.ExpireAt = -1
 
-	resp, err := http.Get(model2.Param.ApiPrefix + "/token/info/" + token)
+	resp, err := http.Get(model.Param.ApiPrefix + "/token/info/" + token)
 	if err != nil {
 		return shareInfo, fmt.Errorf("获取token信息失败: %s", err)
 	}

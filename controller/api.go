@@ -3,8 +3,8 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"goPandora/controller/model"
 	"goPandora/internal/pandora"
+	"goPandora/model"
 	"net/http"
 	"strings"
 	"time"

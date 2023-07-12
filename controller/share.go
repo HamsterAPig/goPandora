@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"goPandora/controller/model"
+	"goPandora/model"
 	"io"
 	"net/http"
 	"net/url"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"goPandora/config"
-	"goPandora/controller/model"
+	"goPandora/model"
 	"net/http"
 	"time"
 )

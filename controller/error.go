@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"goPandora/controller/model"
+	"goPandora/model"
 	"net/http"
 )
 
