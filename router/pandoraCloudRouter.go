@@ -54,7 +54,7 @@ func PandoraCloudRouter() http.Handler {
 	router.StaticFile("/apple-touch-icon.png", "resource/static/apple-touch-icon.png")
 	router.StaticFile("/favicon-16x16.png", "resource/static/favicon-16x16.png")
 	router.StaticFile("/favicon-32x32.png", "resource/static/favicon-32x32.png")
-	router.StaticFile("/manifest.json", "esource/static/manifest.json")
+	router.StaticFile("/manifest.json", "resource/static/manifest.json")
 	router.StaticFile("/favicon.ico", "resource/static/favicon-16x16.png")
 
 	// 404
