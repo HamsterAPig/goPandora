@@ -46,6 +46,7 @@ func PandoraCloudRouter() http.Handler {
 	router.Static("/css", "resource/static/_next/static/css")
 	router.Static("/chunks", "resource/static/_next/static/chunks")
 	router.Static("/"+model.Param.BuildId, "resource/static/_next/static/"+model.Param.BuildId)
+	router.Static("/_next/static", "resource/static/_next/static")
 	router.Static("/fonts", "resource/static/fonts")
 	router.Static("/ulp", "resource/static/ulp")
 	router.Static("/sweetalert2", "resource/static/sweetalert2")
