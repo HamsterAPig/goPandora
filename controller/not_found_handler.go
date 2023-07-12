@@ -9,6 +9,7 @@ import (
 	"goPandora/config"
 	logger "goPandora/internal/log"
 	"goPandora/model"
+	"io"
 	"net/http"
 	"time"
 )
@@ -75,7 +76,27 @@ func NotFoundHandler(c *gin.Context) {
 			}
 			defer response.Body.Close()
 			if response.StatusCode != http.StatusOK {
-				logger.Error("response.StatusCode != http.StatusOK", zap.Error(err), zap.String("ip", clientIP))
+				body, err := io.ReadAll(response.Body)
+				if err != nil {
+					logger.Error("读取响应内容失败", zap.Error(err))
+					c.Abort()
+					return
+				}
+
+				// 解析JSON数据为map
+				var responseData map[string]interface{}
+				err = json.Unmarshal(body, &responseData)
+
+				code, ok := responseData["errors"].([]interface{})[0].(map[string]interface{})["code"].(float64)
+				if !ok {
+					logger.Error("failed to get code", zap.Error(err))
+					return
+				}
+				if int(code) == 10009 {
+					logger.Info("ip is blocked, skip it", zap.String("ip", clientIP))
+				} else {
+					logger.Error("response code not 200", zap.Error(err), zap.Int("cf error code", int(code)), zap.String("ip", clientIP))
+				}
 				c.Abort()
 				return
 			}
