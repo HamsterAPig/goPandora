@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	logger "goPandora/internal/log"
+	"goPandora/model"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -35,9 +36,36 @@ func Auth0(userName string, password string, mfaCode string, proxy string) (acce
 	codeVerifier, _ := GenerateCodeVerifier()
 	codeChallenge := GenerateCodeChallenge(codeVerifier)
 
+	// 获取pre_auth
+	response, err := http.Get(model.Param.ApiPrefix + "/auth/preauth")
+	if err != nil {
+		return "", "", fmt.Errorf("获取pre_auth失败: %s", err)
+	}
+	defer response.Body.Close()
+
+	// 读取响应的内容
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", "", fmt.Errorf("读取pre_auth响应的内容失败: %s", err)
+	}
+
+	// 解析JSON数据
+	var data map[string]interface{}
+	err = json.Unmarshal(responseBody, &data)
+	if err != nil {
+		return "", "", fmt.Errorf("解析pre_auth的JSON数据时出错: %s", err)
+	}
+
+	// 提取json的值
+	preauthCookie, ok := data["preauth_cookie"].(string)
+	if !ok {
+		return "", "", fmt.Errorf("提取preauth_cookie失败")
+	}
+
 	// 获取State
 	url1 := "https://auth0.openai.com/authorize?client_id=pdlLIX2Y72MIl2rhLhTE9VV9bN905kBh&audience=https%3A%2F%2Fapi.openai.com%2Fv1&redirect_uri=com.openai.chat%3A%2F%2Fauth0.openai.com%2Fios%2Fcom.openai.chat%2Fcallback&scope=openid%20email%20profile%20offline_access%20model.request%20model.read%20organization.read%20offline&response_type=code&code_challenge=HlLnX9QkMGL0gGRBoyjtXtWcuIc9_t_CTNyNX8dLahk&code_challenge_method=S256&prompt=login"
 	url1 = strings.Replace(url1, "code_challenge=HlLnX9QkMGL0gGRBoyjtXtWcuIc9_t_CTNyNX8dLahk", "code_challenge="+codeChallenge, 1)
+	url1 += "&preauth_cookie=" + preauthCookie
 	req1, err := http.NewRequest(http.MethodGet, url1, nil)
 	if err != nil {
 		return "", "", fmt.Errorf("create request_1 error: %s", err)
