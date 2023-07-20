@@ -20,8 +20,7 @@ func error404(c *gin.Context) {
 		"scriptLoader": "[]",
 	}
 	c.HTML(http.StatusNotFound, "404.html", gin.H{
-		"props":          props,
-		"pandora_sentry": model.Param.PandoraSentry,
-		"api_prefix":     model.Param.ApiPrefix,
+		"props":      props,
+		"api_prefix": model.Param.ApiPrefix,
 	})
 }

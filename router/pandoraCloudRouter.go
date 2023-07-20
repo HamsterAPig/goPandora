@@ -61,10 +61,9 @@ func PandoraCloudRouter() http.Handler {
 	router.NoRoute(controller2.NotFoundHandler)
 	router.GET("/404.html", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "404.html", gin.H{
-			"api_prefix":     model.Param.ApiPrefix,
-			"build_id":       model.Param.BuildId,
-			"pandora_sentry": model.Param.PandoraSentry,
-			"props":          "",
+			"api_prefix": model.Param.ApiPrefix,
+			"build_id":   model.Param.BuildId,
+			"props":      "",
 		})
 	})
 
@@ -72,6 +71,18 @@ func PandoraCloudRouter() http.Handler {
 	{
 		api.GET("/auth/session", controller2.SessionAPIHandler)
 		api.GET("/accounts/check/v4-2023-04-27", controller2.CheckAPIHandler)
+		api.GET("/auth/csrf", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"csrfToken": "ca8a67e09fc1b14d5146184efeeeb7e42dd247e1772e1f728e6e802cbcfe414e",
+			})
+		})
+		api.POST("/auth/signout", func(c *gin.Context) {
+			c.SetCookie("access-token", "", -1, "/", "", false, true)
+			callbackURL := c.DefaultQuery("callbackUrl", "/login")
+			c.JSON(http.StatusOK, gin.H{
+				"url": callbackURL,
+			})
+		})
 	}
 
 	router.GET("/", controller2.ChatHandler)

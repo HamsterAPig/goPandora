@@ -27,9 +27,8 @@ func ShareDetailHandler(c *gin.Context) {
 	}
 	props := shareDetailJson(c)
 	c.HTML(http.StatusOK, "share.html", gin.H{
-		"props":          props,
-		"pandora_sentry": model.Param.PandoraSentry,
-		"api_prefix":     model.Param.ApiPrefix,
+		"props":      props,
+		"api_prefix": model.Param.ApiPrefix,
 	})
 }
 

@@ -65,8 +65,7 @@ func ChatHandler(c *gin.Context) {
 
 	// 返回渲染好的模板
 	c.HTML(http.StatusOK, templateHtml, gin.H{
-		"pandora_sentry": model.Param.PandoraSentry,
-		"api_prefix":     model.Param.ApiPrefix,
-		"props":          props,
+		"api_prefix": model.Param.ApiPrefix,
+		"props":      props,
 	})
 }
