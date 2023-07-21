@@ -39,6 +39,7 @@ func CheckAPIHandler(c *gin.Context) {
 					"browsing_inner_monologue",
 					"new_plugin_oauth_endpoint",
 					"code_interpreter_available",
+					"chat_preferences_available",
 					"plugin_review_tools",
 					"message_debug_info",
 					"shareable_links",
