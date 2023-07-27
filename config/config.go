@@ -18,6 +18,7 @@ type MainSection struct {
 	Endpoint              string `mapstructure:"endpoint"`                 // 后端服务器地址
 	EnableVerifySharePage bool   `mapstructure:"enable-verify-share-page"` // 是否启用分享页验证
 	EnableDayAPIPrefix    bool   `mapstructure:"enable-day-api-prefix"`    // 启用日抛域名支持
+	ProxyNode             string `mapstructure:"proxy"`
 }
 type CloudflareSection struct {
 	Email  string `mapstructure:"email"`
@@ -40,6 +41,7 @@ func ReadConfig() (*VariableConfig, error) {
 	pflag.StringP("endpoint", "e", "http://127.0.0.1:8899", "endpoint")
 	pflag.Bool("enable-verify-share-page", true, "enable verify share page")
 	pflag.Bool("enable-day-api-prefix", true, "enable day api prefix")
+	pflag.StringP("proxy", "p", "", "proxy")
 	pflag.Parse()
 
 	// 初始化Viperr

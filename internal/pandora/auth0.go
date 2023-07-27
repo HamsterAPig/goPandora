@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go.uber.org/zap"
+	"goPandora/config"
 	logger "goPandora/internal/log"
 	"goPandora/model"
 	"io"
@@ -24,6 +25,13 @@ func Auth0(userName string, password string, mfaCode string, proxy string) (acce
 	match, _ := regexp.MatchString(pattern, userName)
 	if !match {
 		return "", "", fmt.Errorf("%s is not a valid email address", userName)
+	}
+	// 创建一个自定义的Transport
+	transport := &http.Transport{}
+	proxyURL := GetProxyURL()
+	if proxyURL != nil {
+		logger.Debug("using proxy", zap.String("url", proxyURL.String()))
+		transport.Proxy = http.ProxyURL(proxyURL) // 设置代理
 	}
 	client := http.Client{
 		Jar: createCookieJar(),
@@ -224,4 +232,24 @@ func GetTokenAndRefreshTokenByCode(code string, codeVerifier string) (string, st
 func createCookieJar() *cookiejar.Jar {
 	jar, _ := cookiejar.New(nil)
 	return jar
+}
+
+// GetProxyURL 获取代理地址
+func GetProxyURL() *url.URL {
+	// 检查代理地址是否存在
+	// 如果存在则返回代理URL，否则返回nil
+	proxyURLStr := config.Conf.MainConfig.ProxyNode
+	if proxyURLStr != "" {
+		if !strings.Contains(proxyURLStr, "://") {
+			proxyURLStr = "http://" + proxyURLStr
+		}
+		proxyURL, err := url.Parse(proxyURLStr)
+		if err != nil {
+			logger.Fatal("parse proxyURL error", zap.Error(err))
+		}
+		logger.Debug("proxyURL", zap.String("proxyURL", proxyURL.String()))
+		return proxyURL
+	}
+
+	return nil
 }
