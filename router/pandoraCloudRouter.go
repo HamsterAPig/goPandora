@@ -86,6 +86,11 @@ func PandoraCloudRouter() http.Handler {
 	}
 
 	router.GET("/", controller2.ChatHandler)
+	router.GET("/via_inject_blocker.css", func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "not found",
+		})
+	})
 	chat := router.Group("/c")
 	{
 		chat.GET("", controller2.ChatHandler)
