@@ -15,7 +15,7 @@ func ChatHandler(c *gin.Context) {
 		serializedDate := time.Now().Format("20060102")
 		model.Param.ApiPrefix = fmt.Sprintf("https://ai-%s.fakeopen.com", serializedDate)
 	}
-	conversationID := c.Param("chatID")
+	conversationID := c.Param("default")
 	// 解析、验证token
 	userID, email, _, _, err := getUserInfo(c)
 	if err != nil { // 如果验证的token出现错误则跳转到/login
@@ -47,7 +47,7 @@ func ChatHandler(c *gin.Context) {
 			},
 			"__N_SSP": true,
 		},
-		"page":         "/",
+		"page":         "/[[...default]]",
 		"query":        gin.H{},
 		"buildId":      model.Param.BuildId,
 		"isFallback":   false,
@@ -59,8 +59,7 @@ func ChatHandler(c *gin.Context) {
 	templateHtml := "chat.html"
 	if "" != conversationID {
 		templateHtml = "detail.html"
-		props["page"] = "/c/[chatId]"
-		props["query"] = gin.H{"chatId": conversationID}
+		props["query"] = gin.H{"default": []string{"c", conversationID}}
 	}
 
 	// 返回渲染好的模板
