@@ -55,7 +55,10 @@ func UserInfoHandler(c *gin.Context) {
 				"paid":   gin.H{},
 				"public": gin.H{},
 			},
-			"isUserInCanPayGroup": true,
+			"allowBrowserStorage":     true,
+			"canManageBrowserStorage": false,
+			"ageVerificationDeadline": nil,
+			"isUserInCanPayGroup":     true,
 		},
 		"__N_SSP": true,
 	}

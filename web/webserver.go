@@ -26,7 +26,7 @@ func ServerStart() {
 
 	model.Param = model.PandoraParam{
 		ApiPrefix: config.Conf.MainConfig.ChatGPTAPIPrefix,
-		BuildId:   "oDTsXIohP85MnLZj7TlaB",
+		BuildId:   "VkDNisWOezhjENf61sgQl",
 	}
 	// 设置是否启用分享页查看验证
 	model.Param.EnableSharePageVerify = config.Conf.MainConfig.EnableVerifySharePage
