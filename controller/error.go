@@ -14,6 +14,7 @@ func error404(c *gin.Context) {
 		"page":         "/_error",
 		"query":        gin.H{},
 		"buildId":      model.Param.BuildId,
+		"assetPrefix":  nil,
 		"nextExport":   true,
 		"isFallback":   false,
 		"gip":          true,
