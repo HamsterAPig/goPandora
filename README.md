@@ -1,3 +1,9 @@
+# PandoraNext
+
+> Pandora作者已经用go重写了下一代Pandora，本项目不再更新
+
+PandoraNext地址：https://pandoranext.com/
+
 # goPandora
 
 使用golang重构的Pandora-Cloud服务程序
